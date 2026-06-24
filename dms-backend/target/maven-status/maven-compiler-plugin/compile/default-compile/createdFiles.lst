@@ -1,0 +1,7 @@
+com\dms\entity\Role.class
+com\dms\DmsApplication.class
+com\dms\entity\User.class
+com\dms\config\AuditorAwareImpl.class
+com\dms\entity\Department.class
+com\dms\entity\User$UserBuilder.class
+com\dms\entity\BaseEntity.class
