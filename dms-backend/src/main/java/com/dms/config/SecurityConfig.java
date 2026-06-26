@@ -1,5 +1,6 @@
 package com.dms.config;
 
+import com.dms.constant.ApiConstants;
 import com.dms.security.jwt.JwtAuthenticationEntryPoint;
 import com.dms.security.jwt.JwtAuthenticationFilter;
 import com.dms.security.service.CustomUserDetailsService;
@@ -32,16 +33,6 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter    jwtAuthenticationFilter;
     private final CorsConfigurationSource    corsConfigurationSource;
 
-    // ─── Public endpoint matchers ─────────────────────────────────────────────
-
-    private static final String[] PUBLIC_URLS = {
-            "/auth/login",
-            "/v3/api-docs/**",
-            "/swagger-ui/**",
-            "/swagger-ui.html",
-            "/actuator/health"
-    };
-
     // ─── Filter chain ─────────────────────────────────────────────────────────
 
     @Bean
@@ -67,7 +58,7 @@ public class SecurityConfig {
 
             // Authorization rules
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers(PUBLIC_URLS).permitAll()
+                    .requestMatchers(ApiConstants.PUBLIC_ENDPOINTS).permitAll()
                     .anyRequest().authenticated())
 
             // Wire authentication provider
