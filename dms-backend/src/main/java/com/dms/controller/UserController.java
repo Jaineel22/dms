@@ -40,8 +40,6 @@ public class UserController {
 
     private final UserService userService;
 
-    // ─── POST /users ──────────────────────────────────────────────────────────
-
     @Operation(summary = "Create user (ADMIN only)")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "User created"),
@@ -59,9 +57,6 @@ public class UserController {
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success("User created successfully", created));
     }
-
-    // ─── PUT /users/{userId} ──────────────────────────────────────────────────
-
     @Operation(summary = "Update user (ADMIN only)")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "User updated"),
@@ -94,8 +89,6 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    // ─── GET /users/{userId} ──────────────────────────────────────────────────
-
     @Operation(summary = "Get user by ID (ADMIN only)")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "User returned"),
@@ -110,7 +103,6 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(user));
     }
 
-    // ─── GET /users ───────────────────────────────────────────────────────────
 
     @Operation(summary = "List all users — paginated (ADMIN only)")
     @ApiResponses(value = {
@@ -132,7 +124,6 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
-    // ─── PATCH /users/{userId}/toggle-status ─────────────────────────────────
 
     @Operation(summary = "Toggle user active/inactive status (ADMIN only)")
     @ApiResponses(value = {
@@ -147,8 +138,6 @@ public class UserController {
         userService.toggleUserStatus(userId);
         return ResponseEntity.ok(ApiResponse.success("User status toggled successfully"));
     }
-
-    // ─── POST /users/{userId}/change-password ─────────────────────────────────
 
     @Operation(summary = "Change user password (ADMIN or self)")
     @ApiResponses(value = {
@@ -167,8 +156,6 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("Password changed successfully"));
     }
 
-    // ─── PATCH /users/{userId}/reset-password ────────────────────────────────
-
     @Operation(summary = "Reset user password to a temporary value (ADMIN only)")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Password reset"),
@@ -185,8 +172,6 @@ public class UserController {
                         Map.of("temporaryPassword", temporaryPassword)));
     }
 
-    // ─── Helpers ──────────────────────────────────────────────────────────────
-
     private Pageable buildPageable(int page, int size, String sort) {
         // Clamp page size to prevent abuse
         int safeSize = Math.min(size, 100);
@@ -197,8 +182,6 @@ public class UserController {
                 : Sort.Direction.ASC;
         return PageRequest.of(page, safeSize, Sort.by(dir, field));
     }
-
-    // ─── Inner request record (change-password body) ──────────────────────────
 
     public record ChangePasswordRequest(
             @NotBlank(message = "Old password is required")
