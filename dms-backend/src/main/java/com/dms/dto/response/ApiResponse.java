@@ -24,11 +24,7 @@ public class ApiResponse<T> {
     private LocalDateTime timestamp = LocalDateTime.now();
 
     private String path;
-
-    /** Populated only on validation / business rule errors. */
     private List<FieldError> errors;
-
-    // ─── Static factory methods ───────────────────────────────────────────────
 
     public static <T> ApiResponse<T> success(T data) {
         return ApiResponse.<T>builder()
@@ -66,8 +62,6 @@ public class ApiResponse<T> {
                 .errors(errors)
                 .build();
     }
-
-    // ─── Nested error detail ──────────────────────────────────────────────────
 
     @Data
     @Builder

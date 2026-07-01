@@ -149,7 +149,7 @@ Error starting ApplicationContext. To display the condition evaluation report re
 2026-06-24 15:45:56 [main] ERROR o.s.boot.SpringApplication - Application run failed
 org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/autoconfigure/flyway/FlywayAutoConfiguration$FlywayConfiguration.class]: Unable to obtain connection from database: Access denied for user 'root'@'localhost' (using password: YES)
 ----------------------------------------------------------------------------------------------------------
-SQL State  : 28000
+SQL State  : 28000 
 Error Code : 1045
 Message    : Access denied for user 'root'@'localhost' (using password: YES)
 
