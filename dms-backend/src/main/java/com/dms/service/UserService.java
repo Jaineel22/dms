@@ -87,4 +87,13 @@ public interface UserService {
      * @return the plain-text temporary password (caller must deliver it securely)
      */
     String resetPassword(Long userId);
+
+    /**
+     * Returns all active users whose managerId matches the given manager ID.
+     * Used by the hierarchy module to resolve direct reports.
+     *
+     * @param managerId the manager's user ID
+     * @return list of user profiles whose manager is the given user
+     */
+    List<UserResponse> getUsersByManager(Long managerId);
 }
