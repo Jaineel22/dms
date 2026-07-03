@@ -29,18 +29,20 @@ import org.springframework.util.StringUtils;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;  // ✅ ADD THIS IMPORT
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository       userRepository;
-    private final RoleRepository       roleRepository;
+    // ✅ REMOVED DUPLICATES - Each field appears only once
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final DepartmentRepository departmentRepository;
-    private final UserMapper           userMapper;
-    private final PasswordEncoder      passwordEncoder;
-    private final SecurityUtils        securityUtils;
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final SecurityUtils securityUtils;
 
     // ─── Create ───────────────────────────────────────────────────────────────
 
@@ -170,7 +172,7 @@ public class UserServiceImpl implements UserService {
         User target = resolveUser(userId);
 
         boolean callerIsAdmin = securityUtils.isAdmin();
-        boolean callerIsSelf  = caller.getId().equals(userId);
+        boolean callerIsSelf = caller.getId().equals(userId);
 
         if (!callerIsAdmin && !callerIsSelf) {
             throw new AccessDeniedException("You are not authorised to change this user's password");
@@ -236,9 +238,17 @@ public class UserServiceImpl implements UserService {
         SecureRandom random = new SecureRandom();
         byte[] bytes = new byte[12];
         random.nextBytes(bytes);
-        // Base64 gives us alphanumeric + symbols — strip padding for cleanliness
         String base = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-        // Ensure policy compliance: prefix with known upper + digit + special
         return "Tmp1@" + base.substring(0, 10);
+    }
+
+    // ─── Get users by manager ─────────────────────────────────────────────────
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponse> getUsersByManager(Long managerId) {
+        return userRepository.findByManagerId(managerId).stream()
+                .map(userMapper::toResponse)
+                .collect(java.util.stream.Collectors.toList());
     }
 }
