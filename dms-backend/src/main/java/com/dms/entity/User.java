@@ -2,16 +2,15 @@ package com.dms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "users")
 @Getter
 @Setter
+// ❌ REMOVE @Builder - MapStruct will use setters
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Entity
+@Table(name = "users")
 public class User extends BaseEntity {
 
     @Column(name = "first_name", nullable = false, length = 50)
@@ -23,7 +22,7 @@ public class User extends BaseEntity {
     @Column(name = "email", unique = true, nullable = false, length = 100)
     private String email;
 
-    @Column(name = "password", nullable = false, length = 255)
+    @Column(name = "password", nullable = false)
     private String password;
 
     @Column(name = "employee_id", unique = true, nullable = false, length = 20)
@@ -44,8 +43,7 @@ public class User extends BaseEntity {
     @Column(name = "password_changed_at")
     private LocalDateTime passwordChangedAt;
 
-    @Column(name = "login_attempts", nullable = false)
-    @Builder.Default
+    @Column(name = "login_attempts")
     private Integer loginAttempts = 0;
 
     @Column(name = "locked_until")
@@ -54,8 +52,7 @@ public class User extends BaseEntity {
     @Column(name = "manager_id")
     private Long managerId;
 
-    @Column(name = "employee_level", nullable = false)
-    @Builder.Default
+    @Column(name = "employee_level")
     private Integer employeeLevel = 1;
 
     @ManyToOne(fetch = FetchType.LAZY)
