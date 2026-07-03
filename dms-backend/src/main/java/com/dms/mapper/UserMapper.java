@@ -3,7 +3,7 @@ package com.dms.mapper;
 import com.dms.dto.request.UserCreateRequest;
 import com.dms.dto.request.UserUpdateRequest;
 import com.dms.dto.response.DepartmentResponse;
-import com.dms.dto.response.RoleResponse;
+import com.dms.dto.response.RoleResponse;  // ✅ ADDED
 import com.dms.dto.response.UserResponse;
 import com.dms.entity.Department;
 import com.dms.entity.Role;
@@ -34,7 +34,7 @@ public interface UserMapper {
     @Mapping(target = "isActive",         constant = "true")
     @Mapping(target = "role",             ignore = true)
     @Mapping(target = "department",       ignore = true)
-    @Mapping(target = "password",         ignore = true)   // encoded by service
+    @Mapping(target = "password",         ignore = true)
     @Mapping(target = "lastLoginAt",      ignore = true)
     @Mapping(target = "passwordChangedAt",ignore = true)
     @Mapping(target = "loginAttempts",    constant = "0")
@@ -44,11 +44,6 @@ public interface UserMapper {
 
     // ─── UpdateRequest → Entity (patch) ──────────────────────────────────────
 
-    /**
-     * Applies non-null fields from {@link UserUpdateRequest} onto an existing
-     * {@link User} entity. Fields not present in the request are left unchanged
-     * (IGNORE strategy). Role and Department are resolved by the service layer.
-     */
     @Mapping(target = "id",               ignore = true)
     @Mapping(target = "createdAt",        ignore = true)
     @Mapping(target = "updatedAt",        ignore = true)

@@ -10,6 +10,10 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
+// ✅ ADDED IMPORTS
+import com.dms.mapper.DepartmentMapper;
+import com.dms.mapper.WorkflowStepMapper;
+
 @Mapper(
     componentModel = "spring",
     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,

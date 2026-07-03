@@ -19,6 +19,7 @@ public interface DepartmentMapper {
      * {@code userCount} must be set manually by the service layer
      * (requires a separate COUNT query).
      */
+    @Named("departmentToResponse")
     @Mapping(target = "userCount", ignore = true)
     DepartmentResponse toResponse(Department department);
 
