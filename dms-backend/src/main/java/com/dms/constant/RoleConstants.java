@@ -31,4 +31,17 @@ public final class RoleConstants {
 
     /** Allows either ADMIN or USER role. */
     public static final String HAS_ANY_ROLE = "hasAnyRole('ADMIN', 'USER')";
+
+    // ─── Hierarchy level role mappings (optional / future use) ────────────────
+
+    public static final String ROLE_EMPLOYEE  = "ROLE_EMPLOYEE";
+    public static final String ROLE_TEAM_LEAD = "ROLE_TEAM_LEAD";
+    public static final String ROLE_MANAGER   = "ROLE_MANAGER";
+    public static final String ROLE_DIRECTOR  = "ROLE_DIRECTOR";
+
+    // Short names for SpEL
+    public static final String EMPLOYEE  = "EMPLOYEE";
+    public static final String TEAM_LEAD = "TEAM_LEAD";
+    public static final String MANAGER   = "MANAGER";
+    public static final String DIRECTOR  = "DIRECTOR";
 }

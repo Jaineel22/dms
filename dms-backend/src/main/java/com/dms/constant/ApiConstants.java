@@ -40,6 +40,24 @@ public final class ApiConstants {
     public static final String DEPT_BY_ID    = DEPARTMENTS_BASE + "/{deptId}";
     public static final String DEPT_USERS    = DEPARTMENTS_BASE + "/{deptId}/users";
 
+    // ─── Hierarchy endpoints ──────────────────────────────────────────────────
+
+    public static final String HIERARCHY_BASE    = API_VERSION + "/hierarchy";
+    public static final String HIERARCHY_ASSIGN  = HIERARCHY_BASE + "/assign";
+    public static final String HIERARCHY_USER    = HIERARCHY_BASE + "/{userId}";
+    public static final String HIERARCHY_TEAM    = HIERARCHY_BASE + "/team/{managerId}";
+    public static final String HIERARCHY_REPORTS = HIERARCHY_BASE + "/reports/{managerId}";
+    public static final String HIERARCHY_CHAIN   = HIERARCHY_BASE + "/chain/{userId}";
+
+    // ─── Workflow endpoints ───────────────────────────────────────────────────
+
+    public static final String WORKFLOW_BASE       = API_VERSION + "/workflows";
+    public static final String WORKFLOW_BY_ID      = WORKFLOW_BASE + "/{workflowId}";
+    public static final String WORKFLOW_STEPS      = WORKFLOW_BASE + "/{workflowId}/steps";
+    public static final String WORKFLOW_DEPARTMENT = WORKFLOW_BASE + "/department/{departmentId}";
+    public static final String WORKFLOW_ASSIGN     = WORKFLOW_BASE + "/{workflowId}/assign/{userId}";
+    public static final String WORKFLOW_USER       = WORKFLOW_BASE + "/user/{userId}";
+
     // ─── Public (permit-all) matchers — used in SecurityConfig ───────────────
 
     public static final String[] PUBLIC_ENDPOINTS = {

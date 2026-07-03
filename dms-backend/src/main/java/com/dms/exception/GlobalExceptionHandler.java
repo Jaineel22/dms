@@ -199,6 +199,24 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), null, request);
     }
 
+    @ExceptionHandler(HierarchyException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHierarchyException(
+            HierarchyException ex, HttpServletRequest request) {
+
+        log.warn("Hierarchy violation at [{}]: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), null, request);
+    }
+
+    // ─── 400 Workflow validation ──────────────────────────────────────────────
+
+    @ExceptionHandler(WorkflowException.class)
+    public ResponseEntity<ApiResponse<Void>> handleWorkflowException(
+            WorkflowException ex, HttpServletRequest request) {
+
+        log.warn("Workflow validation failed at [{}]: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null, request);
+    }
+
     // ─── 422 Business Rule ────────────────────────────────────────────────────
 
     @ExceptionHandler(BusinessException.class)

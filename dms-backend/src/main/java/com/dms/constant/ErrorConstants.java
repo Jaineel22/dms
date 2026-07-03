@@ -46,4 +46,28 @@ public final class ErrorConstants {
     // ─── Role ─────────────────────────────────────────────────────────────────
 
     public static final String ROLE_NOT_FOUND           = "Role not found.";
+
+    // ─── Hierarchy ────────────────────────────────────────────────────────────
+
+    public static final String HIERARCHY_USER_NOT_FOUND        = "User not found for hierarchy operation.";
+    public static final String HIERARCHY_MANAGER_NOT_FOUND     = "Manager not found.";
+    public static final String HIERARCHY_CIRCULAR_REFERENCE    = "Circular reference detected in hierarchy. User cannot be their own manager.";
+    public static final String HIERARCHY_SELF_MANAGER          = "A user cannot be their own manager.";
+    public static final String HIERARCHY_EMPLOYEE_LEVEL_INVALID = "Manager must have a higher employee level than the user.";
+    public static final String HIERARCHY_ALREADY_HAS_MANAGER   = "This user already has a manager assigned.";
+    public static final String HIERARCHY_NO_MANAGER_ASSIGNED   = "This user does not have a manager assigned.";
+
+    // ─── Workflow ─────────────────────────────────────────────────────────────
+
+    public static final String WORKFLOW_NOT_FOUND        = "Workflow not found.";
+    public static final String WORKFLOW_NAME_EXISTS      = "A workflow with this name already exists.";
+    public static final String WORKFLOW_STEPS_INVALID    = "Workflow steps are invalid.";
+    public static final String WORKFLOW_STEP_NOT_FOUND   = "Workflow step not found.";
+    public static final String WORKFLOW_INVALID_STEP_ORDER = "Workflow steps must be sequential (1, 2, 3, ...).";
+    public static final String WORKFLOW_DUPLICATE_STEP   = "Duplicate step numbers are not allowed.";
+    public static final String WORKFLOW_STEP_LEVEL_INVALID = "Approval level must be between 1 and 4.";
+    public static final String USER_WORKFLOW_EXISTS      = "This workflow is already assigned to the user.";
+    public static final String USER_WORKFLOW_NOT_FOUND   = "Workflow is not assigned to this user.";
+    public static final String WORKFLOW_MIN_STEPS        = "Workflow must have at least 2 steps.";
+    public static final String WORKFLOW_ROLE_NOT_FOUND   = "Role name does not exist in the system.";
 }
