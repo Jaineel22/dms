@@ -2,7 +2,6 @@ package com.dms.security.jwt;
 
 import com.dms.config.JwtConfig;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,16 +27,12 @@ public class JwtTokenProvider {
     // ─── Key ──────────────────────────────────────────────────────────────────
 
     private SecretKey signingKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtConfig.getSecret());
+        byte[] keyBytes = jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
     // ─── Generation ───────────────────────────────────────────────────────────
 
-    /**
-     * Generates an access token from an authenticated {@link Authentication} object.
-     * Claims: sub (userId), email, roles, iss, iat, exp.
-     */
     public String generateToken(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
@@ -48,7 +44,7 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(now.getTime() + jwtConfig.getExpiration());
 
         return Jwts.builder()
-                .subject(userDetails.getUsername())           // email used as subject
+                .subject(userDetails.getUsername())
                 .claim("roles", roles)
                 .issuer(jwtConfig.getIssuer())
                 .issuedAt(now)
@@ -57,10 +53,6 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    /**
-     * Generates a token directly from a {@link UserDetails} instance
-     * (used after password change / profile fetch without re-authentication).
-     */
     public String generateToken(UserDetails userDetails) {
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
