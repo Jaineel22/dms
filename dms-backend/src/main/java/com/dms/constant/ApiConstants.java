@@ -58,6 +58,29 @@ public final class ApiConstants {
     public static final String WORKFLOW_ASSIGN     = WORKFLOW_BASE + "/{workflowId}/assign/{userId}";
     public static final String WORKFLOW_USER       = WORKFLOW_BASE + "/user/{userId}";
 
+    // ─── Document endpoints ───────────────────────────────────────────────────
+
+    public static final String DOCUMENTS_BASE              = API_VERSION + "/documents";
+    public static final String DOCUMENT_BY_ID              = DOCUMENTS_BASE + "/{documentId}";
+    public static final String DOCUMENT_BY_NUMBER          = DOCUMENTS_BASE + "/number/{documentNumber}";
+    public static final String DOCUMENT_UPLOAD             = DOCUMENTS_BASE + "/upload";
+    public static final String DOCUMENT_VERSION            = DOCUMENTS_BASE + "/{documentId}/version";
+    public static final String DOCUMENT_DOWNLOAD           = DOCUMENTS_BASE + "/download/{documentId}";
+    public static final String DOCUMENT_DOWNLOAD_VERSION   = DOCUMENTS_BASE + "/download/{documentId}/version/{versionNumber}";
+    public static final String DOCUMENT_VERSIONS           = DOCUMENTS_BASE + "/versions/{documentId}";
+    public static final String DOCUMENT_ARCHIVE            = DOCUMENTS_BASE + "/{documentId}/archive";
+    public static final String DOCUMENT_RESTORE            = DOCUMENTS_BASE + "/{documentId}/restore";
+    public static final String DOCUMENT_SEARCH             = DOCUMENTS_BASE + "/search";
+    public static final String DOCUMENT_ADVANCED_SEARCH    = DOCUMENTS_BASE + "/advanced-search";
+    public static final String DOCUMENT_SUMMARY            = DOCUMENTS_BASE + "/summary";
+
+    // ─── Document Category endpoints ─────────────────────────────────────────
+
+    public static final String CATEGORIES_BASE      = API_VERSION + "/categories";
+    public static final String CATEGORY_BY_ID       = CATEGORIES_BASE + "/{categoryId}";
+    public static final String CATEGORIES_ACTIVE    = CATEGORIES_BASE + "/active";
+    public static final String CATEGORIES_PAGINATED = CATEGORIES_BASE + "/paginated";
+
     // ─── Public (permit-all) matchers — used in SecurityConfig ───────────────
 
     public static final String[] PUBLIC_ENDPOINTS = {
