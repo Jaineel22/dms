@@ -1,4 +1,4 @@
-# Add standard Java/Spring Boot ignores
+cd D:\DMS
 @"
 # Compiled class files
 *.class
@@ -43,4 +43,4 @@ logs/
 
 # MapStruct generated sources
 target/generated-sources/
-"@ | Out-File -FilePath .gitignore -Encoding UTF8
+"@ | Out-File -FilePath .gitignore -Encoding UTF8 -NoNewline
