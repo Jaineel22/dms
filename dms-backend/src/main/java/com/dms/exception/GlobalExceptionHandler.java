@@ -227,6 +227,48 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), null, request);
     }
 
+    // ─── 400 Document / File validation ──────────────────────────────────────
+
+    @ExceptionHandler(DocumentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDocumentException(
+            DocumentException ex, HttpServletRequest request) {
+
+        log.warn("Document validation failed at [{}]: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null, request);
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.MultipartException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMultipartException(
+            org.springframework.web.multipart.MultipartException ex, HttpServletRequest request) {
+
+        log.warn("Multipart upload error at [{}]: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST,
+                "File upload error: " + ex.getMessage(), null, request);
+    }
+
+    // ─── 413 Payload Too Large ────────────────────────────────────────────────
+
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSizeExceededException(
+            org.springframework.web.multipart.MaxUploadSizeExceededException ex,
+            HttpServletRequest request) {
+
+        log.warn("File size exceeded at [{}]: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.PAYLOAD_TOO_LARGE,
+                "File size exceeds the maximum allowed limit (10 MB).", null, request);
+    }
+
+    // ─── 500 File Storage ─────────────────────────────────────────────────────
+
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<ApiResponse<Void>> handleFileStorageException(
+            FileStorageException ex, HttpServletRequest request) {
+
+        log.error("File storage error at [{}]: {}", request.getRequestURI(), ex.getMessage(), ex);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+                "A file storage error occurred. Please try again later.", null, request);
+    }
+
     // ─── 500 Catch-all ────────────────────────────────────────────────────────
 
     @ExceptionHandler(Exception.class)
