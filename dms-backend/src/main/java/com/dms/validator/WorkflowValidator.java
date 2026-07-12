@@ -1,8 +1,18 @@
 package com.dms.validator;
 
+import com.dms.constant.ErrorConstants;
 import com.dms.dto.request.WorkflowStepRequest;
+import com.dms.entity.Approval;
+import com.dms.entity.Document;
+import com.dms.entity.WorkflowInstance;
+import com.dms.exception.DocumentException;
 import com.dms.exception.WorkflowException;
+import com.dms.exception.WorkflowExecutionException;
+import com.dms.repository.ApprovalRepository;
+import com.dms.repository.DocumentRepository;
 import com.dms.repository.RoleRepository;
+import com.dms.repository.UserWorkflowRepository;
+import com.dms.repository.WorkflowStepRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -11,15 +21,25 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Spring-managed validator for workflow step lists.
- * Centralises the business rules so they can be reused outside
- * {@code WorkflowServiceImpl} (e.g. from a future bulk-import feature).
+ * Spring-managed validator for workflow operations.
+ * Centralises business rules for both workflow definition and execution.
  */
 @Component
 @RequiredArgsConstructor
 public class WorkflowValidator {
 
+    // ─── Phase 2 Dependencies (Workflow Definition) ────────────────────────────
     private final RoleRepository roleRepository;
+
+    // ─── Phase 4 Dependencies (Workflow Execution) ─────────────────────────────
+    private final DocumentRepository documentRepository;
+    private final UserWorkflowRepository userWorkflowRepository;
+    private final ApprovalRepository approvalRepository;
+    private final WorkflowStepRepository workflowStepRepository;
+
+    // ═════════════════════════════════════════════════════════════════════════════
+    //  PHASE 2 — Workflow Definition Validation
+    // ═════════════════════════════════════════════════════════════════════════════
 
     /**
      * Validates workflow steps:
@@ -58,7 +78,7 @@ public class WorkflowValidator {
             throw new WorkflowException("Duplicate step numbers are not allowed");
         }
 
-        // Check sequential order (1, 2, 3, ...) — assumes input order represents intended order
+        // Check sequential order (1, 2, 3, ...)
         List<WorkflowStepRequest> sorted = steps.stream()
                 .sorted((a, b) -> Integer.compare(a.getStepNumber(), b.getStepNumber()))
                 .collect(Collectors.toList());
@@ -110,5 +130,66 @@ public class WorkflowValidator {
      */
     public void validateApprovalLevels(List<WorkflowStepRequest> steps) {
         validateWorkflowSteps(steps);
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════════
+    //  PHASE 4 — Workflow Execution Validation
+    // ═════════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Ensures a document exists, is not archived, and has no active workflow instance.
+     */
+    public void validateDocumentCanBeSubmitted(Long documentId) {
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new DocumentException(ErrorConstants.WORKFLOW_NOT_FOUND));
+
+        if (Boolean.TRUE.equals(document.getIsArchived())) {
+            throw new WorkflowExecutionException("Cannot submit an archived document for approval");
+        }
+
+        if (document.getWorkflowInstanceId() != null && "UNDER_REVIEW".equals(document.getWorkflowStatus())) {
+            throw new WorkflowExecutionException(ErrorConstants.WORKFLOW_ALREADY_SUBMITTED);
+        }
+    }
+
+    /**
+     * Ensures the given user has a workflow assigned (used when no explicit workflowId is provided).
+     */
+    public void validateUserHasWorkflow(Long userId) {
+        userWorkflowRepository.findByUserId(userId)
+                .orElseThrow(() -> new WorkflowExecutionException(ErrorConstants.WORKFLOW_NO_WORKFLOW_ASSIGNED));
+    }
+
+    /**
+     * Ensures the given user is the approver assigned to the given approval.
+     */
+    public void validateApprover(Long approvalId, Long userId) {
+        Approval approval = approvalRepository.findById(approvalId)
+                .orElseThrow(() -> new WorkflowExecutionException(ErrorConstants.APPROVAL_NOT_FOUND));
+
+        if (approval.getApprover() == null || !approval.getApprover().getId().equals(userId)) {
+            throw new WorkflowExecutionException(ErrorConstants.APPROVAL_UNAUTHORIZED);
+        }
+    }
+
+    /**
+     * Ensures the given approval is still the active/current one for its workflow instance.
+     */
+    public void validateApprovalIsCurrent(Long approvalId) {
+        Approval approval = approvalRepository.findById(approvalId)
+                .orElseThrow(() -> new WorkflowExecutionException(ErrorConstants.APPROVAL_NOT_FOUND));
+
+        if (!Boolean.TRUE.equals(approval.getIsCurrent())) {
+            throw new WorkflowExecutionException(ErrorConstants.APPROVAL_NOT_CURRENT);
+        }
+    }
+
+    /**
+     * Ensures the target step number exists within the workflow instance's definition.
+     */
+    public void validateWorkflowStepTransition(WorkflowInstance instance, Integer stepNumber) {
+        workflowStepRepository
+                .findByWorkflowDefinitionIdAndStepNumber(instance.getWorkflowDefinition().getId(), stepNumber)
+                .orElseThrow(() -> new WorkflowExecutionException(ErrorConstants.WORKFLOW_INVALID_STEP));
     }
 }

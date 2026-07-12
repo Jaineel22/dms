@@ -207,13 +207,31 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), null, request);
     }
 
-    // ─── 400 Workflow validation ──────────────────────────────────────────────
+    // ─── 400 Workflow validation (Phase 2) ───────────────────────────────────
 
     @ExceptionHandler(WorkflowException.class)
     public ResponseEntity<ApiResponse<Void>> handleWorkflowException(
             WorkflowException ex, HttpServletRequest request) {
 
         log.warn("Workflow validation failed at [{}]: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null, request);
+    }
+
+    // ─── 400 Workflow Execution (Phase 4) ────────────────────────────────────
+
+    @ExceptionHandler(WorkflowExecutionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleWorkflowExecutionException(
+            WorkflowExecutionException ex, HttpServletRequest request) {
+
+        log.warn("Workflow execution error at [{}]: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null, request);
+    }
+
+    @ExceptionHandler(EscalationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleEscalationException(
+            EscalationException ex, HttpServletRequest request) {
+
+        log.warn("Escalation error at [{}]: {}", request.getRequestURI(), ex.getMessage());
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null, request);
     }
 
@@ -227,7 +245,7 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), null, request);
     }
 
-    // ─── 400 Document / File validation ──────────────────────────────────────
+    // ─── 400 Document / File validation (Phase 3) ────────────────────────────
 
     @ExceptionHandler(DocumentException.class)
     public ResponseEntity<ApiResponse<Void>> handleDocumentException(
@@ -258,7 +276,7 @@ public class GlobalExceptionHandler {
                 "File size exceeds the maximum allowed limit (10 MB).", null, request);
     }
 
-    // ─── 500 File Storage ─────────────────────────────────────────────────────
+    // ─── 500 File Storage (Phase 3) ──────────────────────────────────────────
 
     @ExceptionHandler(FileStorageException.class)
     public ResponseEntity<ApiResponse<Void>> handleFileStorageException(
