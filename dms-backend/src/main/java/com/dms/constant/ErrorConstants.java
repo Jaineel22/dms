@@ -57,7 +57,7 @@ public final class ErrorConstants {
     public static final String HIERARCHY_ALREADY_HAS_MANAGER   = "This user already has a manager assigned.";
     public static final String HIERARCHY_NO_MANAGER_ASSIGNED   = "This user does not have a manager assigned.";
 
-    // ─── Workflow ─────────────────────────────────────────────────────────────
+    // ─── Workflow Definition Errors (Phase 2) ────────────────────────────────
 
     public static final String WORKFLOW_NOT_FOUND        = "Workflow not found.";
     public static final String WORKFLOW_NAME_EXISTS      = "A workflow with this name already exists.";
@@ -70,6 +70,33 @@ public final class ErrorConstants {
     public static final String USER_WORKFLOW_NOT_FOUND   = "Workflow is not assigned to this user.";
     public static final String WORKFLOW_MIN_STEPS        = "Workflow must have at least 2 steps.";
     public static final String WORKFLOW_ROLE_NOT_FOUND   = "Role name does not exist in the system.";
+
+    // ─── Workflow Execution Errors (Phase 4) ─────────────────────────────────
+
+    public static final String WORKFLOW_ALREADY_SUBMITTED  = "Document already submitted for approval.";
+    public static final String WORKFLOW_NO_WORKFLOW_ASSIGNED = "User has no workflow assigned.";
+    public static final String WORKFLOW_APPROVER_NOT_FOUND = "No approver found for this step.";
+    public static final String WORKFLOW_INVALID_STEP      = "Invalid workflow step transition.";
+    public static final String WORKFLOW_INSTANCE_NOT_FOUND = "Workflow instance not found.";
+    public static final String WORKFLOW_ALREADY_COMPLETED = "Workflow already completed.";
+    public static final String WORKFLOW_CANCELLED         = "Workflow has been cancelled.";
+
+    // ─── Approval Errors (Phase 4) ───────────────────────────────────────────
+
+    public static final String APPROVAL_NOT_FOUND        = "Approval not found.";
+    public static final String APPROVAL_NOT_CURRENT      = "Approval is no longer current.";
+    public static final String APPROVAL_UNAUTHORIZED     = "You are not authorized for this approval.";
+    public static final String APPROVAL_ALREADY_PROCESSED = "Approval already processed.";
+
+    // ─── Comment Errors (Phase 4) ─────────────────────────────────────────────
+
+    public static final String COMMENT_NOT_FOUND        = "Comment not found.";
+    public static final String COMMENT_UNAUTHORIZED     = "You are not authorized to modify this comment.";
+
+    // ─── Escalation Errors (Phase 4) ──────────────────────────────────────────
+
+    public static final String ESCALATION_INVALID       = "Cannot escalate this approval.";
+    public static final String ESCALATION_USER_NOT_FOUND = "Escalation user not found.";
 
     // ─── Document ─────────────────────────────────────────────────────────────
 

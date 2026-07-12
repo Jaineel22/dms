@@ -32,6 +32,15 @@ public final class RoleConstants {
     /** Allows either ADMIN or USER role. */
     public static final String HAS_ANY_ROLE = "hasAnyRole('ADMIN', 'USER')";
 
+    /** Allows either USER or ADMIN role (same as HAS_ANY_ROLE, added for clarity). */
+    public static final String HAS_ROLE_USER_OR_ADMIN = "hasAnyRole('USER', 'ADMIN')";
+
+    /** Restricts access to MANAGER role only. */
+    public static final String HAS_ROLE_MANAGER = "hasRole('MANAGER')";
+
+    /** Allows either ADMIN or MANAGER role. */
+    public static final String HAS_ROLE_ADMIN_OR_MANAGER = "hasAnyRole('ADMIN', 'MANAGER')";
+
     // ─── Hierarchy level role mappings (optional / future use) ────────────────
 
     public static final String ROLE_EMPLOYEE  = "ROLE_EMPLOYEE";

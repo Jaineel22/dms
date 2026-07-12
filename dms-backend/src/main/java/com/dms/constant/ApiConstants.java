@@ -49,7 +49,7 @@ public final class ApiConstants {
     public static final String HIERARCHY_REPORTS = HIERARCHY_BASE + "/reports/{managerId}";
     public static final String HIERARCHY_CHAIN   = HIERARCHY_BASE + "/chain/{userId}";
 
-    // ─── Workflow endpoints ───────────────────────────────────────────────────
+    // ─── Workflow Definition endpoints (Phase 2) ──────────────────────────────
 
     public static final String WORKFLOW_BASE       = API_VERSION + "/workflows";
     public static final String WORKFLOW_BY_ID      = WORKFLOW_BASE + "/{workflowId}";
@@ -58,7 +58,36 @@ public final class ApiConstants {
     public static final String WORKFLOW_ASSIGN     = WORKFLOW_BASE + "/{workflowId}/assign/{userId}";
     public static final String WORKFLOW_USER       = WORKFLOW_BASE + "/user/{userId}";
 
-    // ─── Document endpoints ───────────────────────────────────────────────────
+    // ─── Workflow Execution endpoints (Phase 4) ───────────────────────────────
+
+    public static final String WORKFLOW_EXECUTION_BASE = API_VERSION + "/workflow";
+    public static final String WORKFLOW_SUBMIT         = WORKFLOW_EXECUTION_BASE + "/submit";
+    public static final String WORKFLOW_INSTANCES      = WORKFLOW_EXECUTION_BASE + "/instances";
+    public static final String WORKFLOW_INSTANCE_BY_ID = WORKFLOW_INSTANCES + "/{id}";
+    public static final String WORKFLOW_PENDING        = WORKFLOW_EXECUTION_BASE + "/pending";
+    public static final String WORKFLOW_HISTORY        = WORKFLOW_EXECUTION_BASE + "/history/{documentId}";
+    public static final String WORKFLOW_USER_INSTANCES = WORKFLOW_EXECUTION_BASE + "/user/{userId}";
+    public static final String WORKFLOW_SUMMARY        = WORKFLOW_EXECUTION_BASE + "/summary";
+    public static final String WORKFLOW_CANCEL         = WORKFLOW_INSTANCES + "/{id}/cancel";
+
+    // ─── Approval endpoints (Phase 4) ─────────────────────────────────────────
+
+    public static final String APPROVALS_BASE       = API_VERSION + "/approvals";
+    public static final String APPROVAL_APPROVE     = APPROVALS_BASE + "/{id}/approve";
+    public static final String APPROVAL_REJECT      = APPROVALS_BASE + "/{id}/reject";
+    public static final String APPROVAL_SEND_BACK   = APPROVALS_BASE + "/{id}/send-back";
+    public static final String APPROVAL_CURRENT     = APPROVALS_BASE + "/current/{instanceId}";
+    public static final String APPROVAL_HISTORY     = APPROVALS_BASE + "/history/{instanceId}";
+    public static final String APPROVAL_ESCALATE    = APPROVALS_BASE + "/{id}/escalate";
+
+    // ─── Comment endpoints (Phase 4) ──────────────────────────────────────────
+
+    public static final String COMMENTS_BASE        = API_VERSION + "/comments";
+    public static final String COMMENTS_DOCUMENT    = COMMENTS_BASE + "/document/{documentId}";
+    public static final String COMMENTS_THREAD      = COMMENTS_BASE + "/thread/{commentId}";
+    public static final String COMMENT_BY_ID        = COMMENTS_BASE + "/{id}";
+
+    // ─── Document endpoints (Phase 3) ────────────────────────────────────────
 
     public static final String DOCUMENTS_BASE              = API_VERSION + "/documents";
     public static final String DOCUMENT_BY_ID              = DOCUMENTS_BASE + "/{documentId}";
@@ -74,7 +103,7 @@ public final class ApiConstants {
     public static final String DOCUMENT_ADVANCED_SEARCH    = DOCUMENTS_BASE + "/advanced-search";
     public static final String DOCUMENT_SUMMARY            = DOCUMENTS_BASE + "/summary";
 
-    // ─── Document Category endpoints ─────────────────────────────────────────
+    // ─── Document Category endpoints (Phase 3) ───────────────────────────────
 
     public static final String CATEGORIES_BASE      = API_VERSION + "/categories";
     public static final String CATEGORY_BY_ID       = CATEGORIES_BASE + "/{categoryId}";
