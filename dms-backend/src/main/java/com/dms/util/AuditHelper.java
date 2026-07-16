@@ -93,10 +93,6 @@ public class AuditHelper {
         }
     }
 
-    /**
-     * Field-by-field diff of two objects (via their JSON representations).
-     * Returns a map of fieldName -> {"old": ..., "new": ...} for every field that changed.
-     */
     public Map<String, Object> compareObjects(Object oldObj, Object newObj) {
         Map<String, Object> changes = new LinkedHashMap<>();
         if (oldObj == null && newObj == null) {
