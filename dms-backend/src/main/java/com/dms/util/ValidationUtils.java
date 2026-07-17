@@ -1,25 +1,10 @@
 package com.dms.util;
 
 import java.util.regex.Pattern;
-
-/**
- * Stateless utility class providing field-level validation helpers.
- *
- * <p>These methods complement Jakarta Bean Validation annotations and are
- * intended for programmatic checks inside service or validator classes
- * where annotation-based validation is not available (e.g. password
- * confirmation matching, cross-field rules, manual guard clauses).</p>
- */
 public final class ValidationUtils {
 
     private ValidationUtils() {}
 
-    // ─── Compiled patterns (immutable, thread-safe) ───────────────────────────
-
-    /**
-     * RFC-5322 simplified email pattern.
-     * Allows: local@domain.tld, dots, hyphens, plus signs in local part.
-     */
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
             "^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$"
     );
@@ -43,10 +28,6 @@ public final class ValidationUtils {
             "^[A-Z0-9]+$"
     );
 
-    /**
-     * E.164 phone number (optional leading +, 7–15 digits).
-     * Empty / blank string is also accepted (field is optional).
-     */
     private static final Pattern PHONE_PATTERN = Pattern.compile(
             "^(\\+?[1-9]\\d{6,14})?$"
     );

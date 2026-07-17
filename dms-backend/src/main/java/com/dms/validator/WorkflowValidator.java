@@ -184,9 +184,6 @@ public class WorkflowValidator {
         }
     }
 
-    /**
-     * Ensures the target step number exists within the workflow instance's definition.
-     */
     public void validateWorkflowStepTransition(WorkflowInstance instance, Integer stepNumber) {
         workflowStepRepository
                 .findByWorkflowDefinitionIdAndStepNumber(instance.getWorkflowDefinition().getId(), stepNumber)
