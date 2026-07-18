@@ -1,6 +1,3 @@
--- V1__create_initial_schema.sql
--- DMS Phase 1 - Initial Schema
--- Character Set: UTF8MB4
 
 CREATE TABLE roles (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
