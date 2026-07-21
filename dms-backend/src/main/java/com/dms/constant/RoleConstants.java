@@ -41,6 +41,9 @@ public final class RoleConstants {
     /** Allows either ADMIN or MANAGER role. */
     public static final String HAS_ROLE_ADMIN_OR_MANAGER = "hasAnyRole('ADMIN', 'MANAGER')";
 
+    /** Allows either ADMIN or VIEWER role. Requires VIEWER role to exist in the system. */
+    public static final String HAS_ROLE_ADMIN_OR_VIEWER = "hasAnyRole('ADMIN', 'VIEWER')";
+
     // ─── Hierarchy level role mappings (optional / future use) ────────────────
 
     public static final String ROLE_EMPLOYEE  = "ROLE_EMPLOYEE";

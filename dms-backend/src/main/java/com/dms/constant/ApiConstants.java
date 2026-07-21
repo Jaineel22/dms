@@ -110,6 +110,33 @@ public final class ApiConstants {
     public static final String CATEGORIES_ACTIVE    = CATEGORIES_BASE + "/active";
     public static final String CATEGORIES_PAGINATED = CATEGORIES_BASE + "/paginated";
 
+    // ─── Notification endpoints (Phase 5) ─────────────────────────────────────
+
+    public static final String NOTIFICATIONS_BASE = API_VERSION + "/notifications";
+    public static final String NOTIFICATIONS_UNREAD = NOTIFICATIONS_BASE + "/unread";
+    public static final String NOTIFICATIONS_SUMMARY = NOTIFICATIONS_BASE + "/summary";
+    public static final String NOTIFICATION_READ = NOTIFICATIONS_BASE + "/{id}/read";
+    public static final String NOTIFICATIONS_READ_ALL = NOTIFICATIONS_BASE + "/read-all";
+    public static final String NOTIFICATION_BY_ID = NOTIFICATIONS_BASE + "/{id}";
+    public static final String NOTIFICATIONS_PREFERENCES = NOTIFICATIONS_BASE + "/preferences";
+
+    // ─── Audit endpoints (Phase 5) ────────────────────────────────────────────
+
+    public static final String AUDIT_BASE = API_VERSION + "/audit";
+    public static final String AUDIT_USER = AUDIT_BASE + "/user/{userId}";
+    public static final String AUDIT_ENTITY = AUDIT_BASE + "/entity/{entityType}/{entityId}";
+    public static final String AUDIT_ACTION = AUDIT_BASE + "/action/{action}";
+    public static final String AUDIT_RECENT = AUDIT_BASE + "/recent";
+
+    // ─── Dashboard endpoints (Phase 5) ────────────────────────────────────────
+
+    public static final String DASHBOARD_BASE = API_VERSION + "/dashboard";
+    public static final String DASHBOARD_STATS = DASHBOARD_BASE + "/stats";
+    public static final String DASHBOARD_USER_STATS = DASHBOARD_BASE + "/user-stats";
+    public static final String DASHBOARD_RECENT_ACTIVITY = DASHBOARD_BASE + "/recent-activity";
+    public static final String DASHBOARD_DOCUMENT_STATS = DASHBOARD_BASE + "/document-stats";
+    public static final String DASHBOARD_WORKFLOW_STATS = DASHBOARD_BASE + "/workflow-stats";
+
     // ─── Public (permit-all) matchers — used in SecurityConfig ───────────────
 
     public static final String[] PUBLIC_ENDPOINTS = {

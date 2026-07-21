@@ -127,4 +127,20 @@ public final class ErrorConstants {
 
     public static final String VERSION_NOT_FOUND     = "Document version not found.";
     public static final String VERSION_ALREADY_EXISTS = "Version number already exists for this document.";
+
+    // ─── Notification Errors (Phase 5) ────────────────────────────────────────
+
+    public static final String NOTIFICATION_NOT_FOUND = "Notification not found.";
+    public static final String NOTIFICATION_ALREADY_READ = "Notification already marked as read.";
+    public static final String NOTIFICATION_PREFERENCE_NOT_FOUND = "Notification preferences not found for this user.";
+
+    // ─── Audit Errors (Phase 5) ───────────────────────────────────────────────
+
+    public static final String AUDIT_LOG_NOT_FOUND = "Audit log entry not found.";
+    public static final String AUDIT_SERIALIZATION_ERROR = "Error serializing audit data.";
+    public static final String AUDIT_INVALID_ENTITY = "Invalid entity type for audit.";
+
+    // ─── Dashboard Errors (Phase 5) ───────────────────────────────────────────
+
+    public static final String DASHBOARD_DATA_NOT_FOUND = "Dashboard data not available.";
 }
