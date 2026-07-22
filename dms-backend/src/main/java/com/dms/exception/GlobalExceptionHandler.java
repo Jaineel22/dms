@@ -287,6 +287,16 @@ public class GlobalExceptionHandler {
                 "A file storage error occurred. Please try again later.", null, request);
     }
 
+    // ─── 400 Audit Exception (Phase 5) ───────────────────────────────────────
+
+    @ExceptionHandler(AuditException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAuditException(
+            AuditException ex, HttpServletRequest request) {
+
+        log.warn("Audit error at [{}]: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null, request);
+    }
+
     // ─── 500 Catch-all ────────────────────────────────────────────────────────
 
     @ExceptionHandler(Exception.class)
