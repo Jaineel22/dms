@@ -13,7 +13,7 @@ public interface CommentMapper {
 
     @Mapping(target = "documentId", source = "document.id")
     @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "userName", source = "user.fullName")
+    @Mapping(target = "userName", expression = "java(comment.getUser().getFirstName() + \" \" + comment.getUser().getLastName())")
     @Mapping(target = "parentCommentId", source = "parentComment.id")
     // `replies` (List<Comment> -> List<CommentResponse>) is resolved automatically by
     // MapStruct using this same toResponse(Comment) method.

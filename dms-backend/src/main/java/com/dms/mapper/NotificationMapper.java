@@ -13,7 +13,7 @@ import java.util.Map;
 public interface NotificationMapper {
 
     @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "userFullName", source = "user.fullName")
+    @Mapping(target = "userFullName", expression = "java(notification.getUser().getFirstName() + \" \" + notification.getUser().getLastName())")
     NotificationResponse toResponse(Notification notification);
 
     List<NotificationResponse> toResponseList(List<Notification> notifications);
