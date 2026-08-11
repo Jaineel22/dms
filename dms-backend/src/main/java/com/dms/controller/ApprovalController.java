@@ -41,7 +41,7 @@ public class ApprovalController {
         request.setApprovalId(id);
         log.info("Approving approval {}", id);
         ApprovalResponse response = approvalService.approve(request);
-        return ResponseEntity.ok(ApiResponse.success(response, "Approved successfully"));
+        return ResponseEntity.ok(ApiResponse.success("Approved successfully", response));
     }
 
     @Operation(summary = "Reject the current step of a workflow instance")
@@ -52,7 +52,7 @@ public class ApprovalController {
         request.setApprovalId(id);
         log.info("Rejecting approval {}", id);
         ApprovalResponse response = approvalService.reject(request);
-        return ResponseEntity.ok(ApiResponse.success(response, "Rejected successfully"));
+        return ResponseEntity.ok(ApiResponse.success("Rejected successfully", response));
     }
 
     @Operation(summary = "Send the document back for changes")
@@ -63,7 +63,7 @@ public class ApprovalController {
         request.setApprovalId(id);
         log.info("Sending back approval {}", id);
         ApprovalResponse response = approvalService.sendBack(request);
-        return ResponseEntity.ok(ApiResponse.success(response, "Sent back successfully"));
+        return ResponseEntity.ok(ApiResponse.success("Sent back successfully", response));
     }
 
     @Operation(summary = "Get the current active approval for a workflow instance")
@@ -92,6 +92,6 @@ public class ApprovalController {
             @RequestParam Long toUserId) {
         log.info("Escalating workflow instance {} to user {}", id, toUserId);
         approvalService.escalateApproval(id, reason, toUserId);
-        return ResponseEntity.ok(ApiResponse.success(null, "Escalated successfully"));
+        return ResponseEntity.ok(ApiResponse.success("Escalated successfully"));
     }
 }

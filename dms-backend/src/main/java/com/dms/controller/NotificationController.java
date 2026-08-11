@@ -8,7 +8,7 @@ import com.dms.dto.response.ApiResponse;
 import com.dms.dto.response.NotificationPreferenceResponse;
 import com.dms.dto.response.NotificationResponse;
 import com.dms.dto.response.NotificationSummaryResponse;
-import com.dms.security.SecurityUtils;
+import com.dms.util.SecurityUtils;
 import com.dms.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,12 +35,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final SecurityUtils securityUtils;
 
     @Operation(summary = "Get all notifications for the current user")
     @GetMapping(ApiConstants.NOTIFICATIONS_BASE)
     public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getAllNotifications(
             @PageableDefault(size = 20) Pageable pageable) {
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         Page<NotificationResponse> response = notificationService.getAllNotifications(currentUserId, pageable);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -49,7 +50,7 @@ public class NotificationController {
     @GetMapping(ApiConstants.NOTIFICATIONS_UNREAD)
     public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getUnreadNotifications(
             @PageableDefault(size = 20) Pageable pageable) {
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         Page<NotificationResponse> response = notificationService.getUnreadNotifications(currentUserId, pageable);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -57,7 +58,7 @@ public class NotificationController {
     @Operation(summary = "Get unread notification counts by type/priority, plus recent notifications")
     @GetMapping(ApiConstants.NOTIFICATIONS_SUMMARY)
     public ResponseEntity<ApiResponse<NotificationSummaryResponse>> getNotificationSummary() {
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         NotificationSummaryResponse response = notificationService.getNotificationSummary(currentUserId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -66,7 +67,7 @@ public class NotificationController {
     @PutMapping(ApiConstants.NOTIFICATION_READ)
     public ResponseEntity<ApiResponse<Void>> markAsRead(@PathVariable Long id) {
         notificationService.markAsRead(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Notification marked as read"));
+        return ResponseEntity.ok(ApiResponse.success("Notification marked as read"));
     }
 
     @Operation(summary = "Mark notifications as read. With no body (or an empty id list), marks all "
@@ -77,23 +78,23 @@ public class NotificationController {
         if (request != null && request.getNotificationIds() != null && !request.getNotificationIds().isEmpty()) {
             request.getNotificationIds().forEach(notificationService::markAsRead);
         } else {
-            Long currentUserId = SecurityUtils.getCurrentUserId();
+            Long currentUserId = securityUtils.getCurrentUserId();
             notificationService.markAllAsRead(currentUserId);
         }
-        return ResponseEntity.ok(ApiResponse.success(null, "Notifications marked as read"));
+        return ResponseEntity.ok(ApiResponse.success("Notifications marked as read"));
     }
 
     @Operation(summary = "Delete a notification")
     @DeleteMapping(ApiConstants.NOTIFICATION_BY_ID)
     public ResponseEntity<ApiResponse<Void>> deleteNotification(@PathVariable Long id) {
         notificationService.deleteNotification(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Notification deleted"));
+        return ResponseEntity.ok(ApiResponse.success("Notification deleted"));
     }
 
     @Operation(summary = "Get the current user's notification preferences")
     @GetMapping(ApiConstants.NOTIFICATIONS_PREFERENCES)
     public ResponseEntity<ApiResponse<NotificationPreferenceResponse>> getPreferences() {
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         NotificationPreferenceResponse response = notificationService.getPreferences(currentUserId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -102,8 +103,8 @@ public class NotificationController {
     @PutMapping(ApiConstants.NOTIFICATIONS_PREFERENCES)
     public ResponseEntity<ApiResponse<NotificationPreferenceResponse>> updatePreferences(
             @Valid @RequestBody NotificationPreferencesRequest request) {
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         NotificationPreferenceResponse response = notificationService.updatePreferences(currentUserId, request);
-        return ResponseEntity.ok(ApiResponse.success(response, "Notification preferences updated"));
+        return ResponseEntity.ok(ApiResponse.success("Notification preferences updated", response));
     }
 }

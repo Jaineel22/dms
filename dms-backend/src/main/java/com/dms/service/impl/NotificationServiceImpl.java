@@ -14,7 +14,7 @@ import com.dms.mapper.NotificationMapper;
 import com.dms.repository.NotificationPreferenceRepository;
 import com.dms.repository.NotificationRepository;
 import com.dms.repository.UserRepository;
-import com.dms.security.SecurityUtils;
+import com.dms.util.SecurityUtils;
 import com.dms.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +38,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationPreferenceRepository notificationPreferenceRepository;
+    private final SecurityUtils securityUtils;
     private final UserRepository userRepository;
     private final NotificationMapper notificationMapper;
 
@@ -227,9 +228,9 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private void validateOwner(Notification notification) {
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         boolean isOwner = notification.getUser() != null && notification.getUser().getId().equals(currentUserId);
-        boolean isAdmin = SecurityUtils.hasRole("ADMIN");
+        boolean isAdmin = securityUtils.hasRole("ADMIN");
         if (!isOwner && !isAdmin) {
             throw new WorkflowException("You are not authorized to modify this notification");
         }

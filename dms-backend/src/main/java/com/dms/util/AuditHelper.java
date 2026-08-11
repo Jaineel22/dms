@@ -2,7 +2,6 @@ package com.dms.util;
 
 import com.dms.entity.User;
 import com.dms.repository.UserRepository;
-import com.dms.security.SecurityUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,9 +24,10 @@ public class AuditHelper {
 
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
+    private final SecurityUtils securityUtils;
 
     public Long getCurrentUserId() {
-        return SecurityUtils.getCurrentUserId();
+        return securityUtils.getCurrentUserId();
     }
 
     public String getCurrentUserEmail() {
@@ -43,7 +43,9 @@ public class AuditHelper {
         if (userId == null) {
             return null;
         }
-        return userRepository.findById(userId).map(User::getFullName).orElse(null);
+        return userRepository.findById(userId)
+                .map(u -> u.getFirstName() + " " + u.getLastName())
+                .orElse(null);
     }
 
     public String getClientIp(HttpServletRequest request) {

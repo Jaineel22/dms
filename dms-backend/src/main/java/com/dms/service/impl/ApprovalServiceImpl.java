@@ -18,7 +18,7 @@ import com.dms.repository.EscalationRepository;
 import com.dms.repository.UserRepository;
 import com.dms.repository.WorkflowInstanceRepository;
 import com.dms.repository.WorkflowStepRepository;
-import com.dms.security.SecurityUtils;
+import com.dms.util.SecurityUtils;
 import com.dms.service.ApprovalService;
 import com.dms.service.HierarchyService;
 import lombok.RequiredArgsConstructor;
@@ -46,13 +46,14 @@ public class ApprovalServiceImpl implements ApprovalService {
     private final UserRepository userRepository;
     private final HierarchyService hierarchyService;
     private final ApprovalMapper approvalMapper;
+    private final SecurityUtils securityUtils;
 
     @Override
     @Transactional
     public ApprovalResponse approve(ApproveRequest request) {
         Approval currentApproval = getCurrentApprovalOrThrow(request.getApprovalId());
         WorkflowInstance instance = currentApproval.getWorkflowInstance();
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         validateApprover(currentApproval, currentUserId);
 
         closeOutApproval(currentApproval, Approval.ApprovalAction.APPROVED, request.getComments(), request.getAttachment());
@@ -71,9 +72,7 @@ public class ApprovalServiceImpl implements ApprovalService {
             instance.setCurrentStep(null);
             instance.setCurrentApprover(null);
 
-            document.setWorkflowStatus("APPROVED");
-            document.setApprovedAt(LocalDateTime.now());
-            document.setApprovedBy(currentApproval.getApprover());
+            document.setStatus("APPROVED");
         } else {
             User nextApprover = hierarchyService.getApproverForLevel(
                     instance.getSubmittedBy().getId(), nextStep.getApprovalLevel());
@@ -108,7 +107,7 @@ public class ApprovalServiceImpl implements ApprovalService {
     public ApprovalResponse reject(RejectRequest request) {
         Approval currentApproval = getCurrentApprovalOrThrow(request.getApprovalId());
         WorkflowInstance instance = currentApproval.getWorkflowInstance();
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         validateApprover(currentApproval, currentUserId);
 
         closeOutApproval(currentApproval, Approval.ApprovalAction.REJECTED, request.getComments(), request.getAttachment());
@@ -120,7 +119,7 @@ public class ApprovalServiceImpl implements ApprovalService {
         workflowInstanceRepository.save(instance);
 
         Document document = instance.getDocument();
-        document.setWorkflowStatus("REJECTED");
+        document.setStatus("REJECTED");
         documentRepository.save(document);
 
         log.info("Approval {} rejected by user {}", currentApproval.getId(), currentUserId);
@@ -132,7 +131,7 @@ public class ApprovalServiceImpl implements ApprovalService {
     public ApprovalResponse sendBack(SendBackRequest request) {
         Approval currentApproval = getCurrentApprovalOrThrow(request.getApprovalId());
         WorkflowInstance instance = currentApproval.getWorkflowInstance();
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         validateApprover(currentApproval, currentUserId);
 
         closeOutApproval(currentApproval, Approval.ApprovalAction.SENT_BACK, request.getComments(), request.getAttachment());
@@ -143,8 +142,7 @@ public class ApprovalServiceImpl implements ApprovalService {
         workflowInstanceRepository.save(instance);
 
         Document document = instance.getDocument();
-        document.setWorkflowStatus("DRAFT");
-        document.setWorkflowInstanceId(null);
+        document.setStatus("DRAFT");
         documentRepository.save(document);
 
         log.info("Approval {} sent back by user {}", currentApproval.getId(), currentUserId);

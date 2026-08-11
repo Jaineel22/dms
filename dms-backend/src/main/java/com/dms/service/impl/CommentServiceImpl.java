@@ -11,7 +11,7 @@ import com.dms.mapper.CommentMapper;
 import com.dms.repository.CommentRepository;
 import com.dms.repository.DocumentRepository;
 import com.dms.repository.UserRepository;
-import com.dms.security.SecurityUtils;
+import com.dms.util.SecurityUtils;
 import com.dms.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +29,7 @@ public class CommentServiceImpl implements CommentService {
     private final DocumentRepository documentRepository;
     private final UserRepository userRepository;
     private final CommentMapper commentMapper;
+    private final SecurityUtils securityUtils;
 
     @Override
     @Transactional
@@ -36,7 +37,7 @@ public class CommentServiceImpl implements CommentService {
         Document document = documentRepository.findById(request.getDocumentId())
                 .orElseThrow(() -> new DocumentException("Document not found with id: " + request.getDocumentId()));
 
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         User user = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new WorkflowException("Current user not found"));
 
@@ -78,7 +79,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new WorkflowException("Comment not found with id: " + commentId));
 
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         validateOwnerOrAdmin(comment, currentUserId);
 
         comment.setContent(content);
@@ -94,7 +95,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new WorkflowException("Comment not found with id: " + commentId));
 
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         validateOwnerOrAdmin(comment, currentUserId);
 
         commentRepository.delete(comment);
@@ -103,7 +104,7 @@ public class CommentServiceImpl implements CommentService {
 
     private void validateOwnerOrAdmin(Comment comment, Long currentUserId) {
         boolean isOwner = comment.getUser() != null && comment.getUser().getId().equals(currentUserId);
-        boolean isAdmin = SecurityUtils.hasRole("ADMIN");
+        boolean isAdmin = securityUtils.hasRole("ADMIN");
         if (!isOwner && !isAdmin) {
             throw new WorkflowException("Only the comment owner or an admin can perform this action");
         }

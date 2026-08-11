@@ -42,7 +42,7 @@ public class CommentController {
     @PreAuthorize(RoleConstants.HAS_ROLE_USER_OR_ADMIN)
     public ResponseEntity<ApiResponse<CommentResponse>> addComment(@Valid @RequestBody CommentRequest request) {
         CommentResponse response = commentService.addComment(request);
-        return ResponseEntity.ok(ApiResponse.success(response, "Comment added successfully"));
+        return ResponseEntity.ok(ApiResponse.success("Comment added successfully", response));
     }
 
     @Operation(summary = "Get paginated comments for a document")
@@ -69,7 +69,7 @@ public class CommentController {
             @PathVariable Long id, @Valid @RequestBody UpdateCommentRequest request) {
         // Ownership vs. admin is enforced inside CommentServiceImpl.
         CommentResponse response = commentService.updateComment(id, request.getContent());
-        return ResponseEntity.ok(ApiResponse.success(response, "Comment updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success("Comment updated successfully", response));
     }
 
     @Operation(summary = "Delete a comment (owner or admin only)")
@@ -78,7 +78,7 @@ public class CommentController {
     public ResponseEntity<ApiResponse<Void>> deleteComment(@PathVariable Long id) {
         // Ownership vs. admin is enforced inside CommentServiceImpl.
         commentService.deleteComment(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Comment deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success("Comment deleted successfully"));
     }
 
     /**

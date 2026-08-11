@@ -8,7 +8,7 @@ import com.dms.dto.response.ApprovalResponse;
 import com.dms.dto.response.PendingApprovalResponse;
 import com.dms.dto.response.WorkflowInstanceResponse;
 import com.dms.dto.response.WorkflowSummaryResponse;
-import com.dms.security.SecurityUtils;
+import com.dms.util.SecurityUtils;
 import com.dms.service.WorkflowExecutionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,6 +36,7 @@ import java.util.List;
 public class WorkflowExecutionController {
 
     private final WorkflowExecutionService workflowExecutionService;
+    private final SecurityUtils securityUtils;
 
     @Operation(summary = "Submit a document for approval")
     @PostMapping(ApiConstants.WORKFLOW_SUBMIT)
@@ -44,7 +45,7 @@ public class WorkflowExecutionController {
             @Valid @RequestBody SubmitDocumentRequest request) {
         log.info("Submitting document {} for approval", request.getDocumentId());
         WorkflowInstanceResponse response = workflowExecutionService.submitDocument(request);
-        return ResponseEntity.ok(ApiResponse.success(response, "Document submitted for approval successfully"));
+        return ResponseEntity.ok(ApiResponse.success("Document submitted for approval successfully", response));
     }
 
     @Operation(summary = "Get a workflow instance by id")
@@ -60,7 +61,7 @@ public class WorkflowExecutionController {
     @PreAuthorize(RoleConstants.HAS_ROLE_USER_OR_ADMIN)
     public ResponseEntity<ApiResponse<Page<PendingApprovalResponse>>> getPendingApprovals(
             @PageableDefault(size = 20) Pageable pageable) {
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         Page<PendingApprovalResponse> response = workflowExecutionService.getPendingApprovals(currentUserId, pageable);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -74,7 +75,7 @@ public class WorkflowExecutionController {
     }
 
     @Operation(summary = "Get all workflow instances submitted by a user")
-    @GetMapping(ApiConstants.WORKFLOW_USER)
+    @GetMapping(ApiConstants.WORKFLOW_USER_INSTANCES)
     @PreAuthorize(RoleConstants.HAS_ROLE_ADMIN)
     public ResponseEntity<ApiResponse<Page<WorkflowInstanceResponse>>> getInstancesByUser(
             @PathVariable Long userId, @PageableDefault(size = 20) Pageable pageable) {
@@ -95,6 +96,6 @@ public class WorkflowExecutionController {
     @PreAuthorize(RoleConstants.HAS_ROLE_USER_OR_ADMIN)
     public ResponseEntity<ApiResponse<Void>> cancelWorkflow(@PathVariable Long id) {
         workflowExecutionService.cancelWorkflow(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Workflow cancelled successfully"));
+        return ResponseEntity.ok(ApiResponse.success("Workflow cancelled successfully"));
     }
 }

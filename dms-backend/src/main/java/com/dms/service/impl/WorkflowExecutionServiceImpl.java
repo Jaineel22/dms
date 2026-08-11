@@ -23,7 +23,7 @@ import com.dms.repository.UserWorkflowRepository;
 import com.dms.repository.WorkflowDefinitionRepository;
 import com.dms.repository.WorkflowInstanceRepository;
 import com.dms.repository.WorkflowStepRepository;
-import com.dms.security.SecurityUtils;
+import com.dms.util.SecurityUtils;
 import com.dms.service.HierarchyService;
 import com.dms.service.WorkflowExecutionService;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +59,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     private final HierarchyService hierarchyService;
     private final WorkflowInstanceMapper workflowInstanceMapper;
     private final ApprovalMapper approvalMapper;
+    private final SecurityUtils securityUtils;
 
     @Override
     @Transactional
@@ -66,11 +67,14 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         Document document = documentRepository.findById(request.getDocumentId())
                 .orElseThrow(() -> new DocumentException("Document not found with id: " + request.getDocumentId()));
 
-        if (document.getWorkflowInstanceId() != null && "UNDER_REVIEW".equals(document.getWorkflowStatus())) {
+        boolean hasActiveInstance = workflowInstanceRepository.findByDocumentId(document.getId())
+                .map(instance -> Boolean.TRUE.equals(instance.getIsActive()))
+                .orElse(false);
+        if (hasActiveInstance) {
             throw new WorkflowException("Document is already under an active workflow");
         }
 
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         User submitter = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new WorkflowException("Current user not found"));
 
@@ -80,8 +84,10 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
                     .orElseThrow(() -> new WorkflowException(
                             "Workflow definition not found with id: " + request.getWorkflowId()));
         } else {
-            workflowDefinition = userWorkflowRepository.findByUserId(currentUserId)
-                    .map(UserWorkflow::getWorkflowDefinition)
+            workflowDefinition = userWorkflowRepository.findByUserIdAndIsActiveTrueOrderByAssignedAtDesc(currentUserId)
+                    .stream()
+                    .findFirst()
+                    .map(UserWorkflow::getWorkflow)
                     .orElseThrow(() -> new WorkflowException("No default workflow assigned to user"));
         }
 
@@ -117,8 +123,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         firstApproval.setComments(request.getComments());
         approvalRepository.save(firstApproval);
 
-        document.setWorkflowStatus("UNDER_REVIEW");
-        document.setWorkflowInstanceId(saved.getId());
+        document.setStatus("UNDER_REVIEW");
         documentRepository.save(document);
 
         log.info("Document {} submitted to workflow {} by user {}", document.getId(),
@@ -186,8 +191,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         workflowInstanceRepository.deactivateInstance(instanceId);
 
         Document document = instance.getDocument();
-        document.setWorkflowStatus("CANCELLED");
-        document.setWorkflowInstanceId(null);
+        document.setStatus("CANCELLED");
         documentRepository.save(document);
 
         log.info("Workflow instance {} cancelled", instanceId);

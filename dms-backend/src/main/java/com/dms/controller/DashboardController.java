@@ -5,7 +5,7 @@ import com.dms.constant.RoleConstants;
 import com.dms.dto.response.ActivityResponse;
 import com.dms.dto.response.ApiResponse;
 import com.dms.dto.response.DashboardStatsResponse;
-import com.dms.security.SecurityUtils;
+import com.dms.util.SecurityUtils;
 import com.dms.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,6 +27,7 @@ import java.util.Map;
 public class DashboardController {
 
     private final DashboardService dashboardService;
+    private final SecurityUtils securityUtils;
 
     @Operation(summary = "Get full dashboard statistics")
     @GetMapping(ApiConstants.DASHBOARD_STATS)
@@ -40,7 +41,7 @@ public class DashboardController {
     @GetMapping(ApiConstants.DASHBOARD_USER_STATS)
     @PreAuthorize(RoleConstants.HAS_ROLE_USER_OR_ADMIN)
     public ResponseEntity<ApiResponse<DashboardStatsResponse>> getUserDashboardStats() {
-        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Long currentUserId = securityUtils.getCurrentUserId();
         DashboardStatsResponse response = dashboardService.getUserDashboardStats(currentUserId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
