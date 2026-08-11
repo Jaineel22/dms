@@ -6,10 +6,10 @@
 CREATE OR REPLACE VIEW v_document_stats AS
 SELECT
     COUNT(*) AS total_documents,
-    SUM(CASE WHEN workflow_status = 'DRAFT' THEN 1 ELSE 0 END) AS draft_count,
-    SUM(CASE WHEN workflow_status = 'UNDER_REVIEW' THEN 1 ELSE 0 END) AS under_review_count,
-    SUM(CASE WHEN workflow_status = 'APPROVED' THEN 1 ELSE 0 END) AS approved_count,
-    SUM(CASE WHEN workflow_status = 'REJECTED' THEN 1 ELSE 0 END) AS rejected_count,
+    SUM(CASE WHEN status = 'DRAFT' THEN 1 ELSE 0 END) AS draft_count,
+    SUM(CASE WHEN status = 'UNDER_REVIEW' THEN 1 ELSE 0 END) AS under_review_count,
+    SUM(CASE WHEN status = 'APPROVED' THEN 1 ELSE 0 END) AS approved_count,
+    SUM(CASE WHEN status = 'REJECTED' THEN 1 ELSE 0 END) AS rejected_count,
     SUM(CASE WHEN is_archived = true THEN 1 ELSE 0 END) AS archived_count,
     COALESCE(SUM(file_size), 0) AS total_storage_bytes
 FROM documents;
