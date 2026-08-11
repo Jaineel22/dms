@@ -3,6 +3,7 @@ package com.dms.service;
 import com.dms.dto.request.AssignManagerRequest;
 import com.dms.dto.response.HierarchyResponse;
 import com.dms.dto.response.TeamMemberResponse;
+import com.dms.entity.User;
 
 import java.util.List;
 
@@ -54,4 +55,13 @@ public interface HierarchyService {
      * Ordered from user → direct manager → grand-manager → … → root.
      */
     List<HierarchyResponse> getReportingChain(Long userId);
+
+    /**
+     * Walks up {@code userId}'s reporting chain and returns the first manager
+     * whose employee level satisfies the given workflow approval level
+     * (1=Employee, 2=TeamLead, 3=Manager, 4=Director).
+     *
+     * @return the approver, or {@code null} if no manager in the chain qualifies
+     */
+    User getApproverForLevel(Long userId, Integer approvalLevel);
 }

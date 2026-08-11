@@ -2,7 +2,6 @@ package com.dms.service.impl;
 
 import com.dms.dto.response.AuditLogResponse;
 import com.dms.entity.AuditLog;
-import com.dms.entity.User;
 import com.dms.mapper.AuditLogMapper;
 import com.dms.repository.AuditLogRepository;
 import com.dms.repository.UserRepository;
@@ -87,7 +86,7 @@ public class AuditServiceImpl implements AuditService {
         AuditLogResponse response = auditLogMapper.toResponse(auditLog);
         userRepository.findById(auditLog.getUserId()).ifPresentOrElse(
                 user -> {
-                    response.setUserFullName(user.getFullName());
+                    response.setUserFullName(user.getFirstName() + " " + user.getLastName());
                     response.setUserEmail(user.getEmail());
                 },
                 () -> {

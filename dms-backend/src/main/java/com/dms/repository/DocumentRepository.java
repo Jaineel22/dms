@@ -96,4 +96,22 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     Page<Document> findAllByIsArchivedTrue(Pageable pageable);
 
     Page<Document> findByOwnerIdAndIsArchivedTrue(Long ownerId, Pageable pageable);
+
+    // ─── Dashboard aggregates ─────────────────────────────────────────────────
+
+    Long countByOwnerId(Long ownerId);
+
+    Long countByOwnerIdAndStatus(Long ownerId, String status);
+
+    Long countByOwnerIdAndIsArchivedTrue(Long ownerId);
+
+    Long countByStatus(String status);
+
+    Long countByIsArchivedTrue();
+
+    @Query("SELECT COALESCE(SUM(d.fileSize), 0) FROM Document d")
+    Long sumFileSize();
+
+    @Query("SELECT COALESCE(SUM(d.fileSize), 0) FROM Document d WHERE d.owner.id = :ownerId")
+    Long sumFileSizeByOwnerId(@Param("ownerId") Long ownerId);
 }

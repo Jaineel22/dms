@@ -21,11 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Relies on a handful of repository methods that don't yet exist on DocumentRepository /
- * UserRepository from earlier phases (countByWorkflowStatus, countByIsArchivedTrue, sumFileSize,
- * countByIsActiveTrue). See patches/RepositoryAdditions.patch.java for the exact methods to add.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -59,10 +54,10 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public DashboardStatsResponse getUserDashboardStats(Long userId) {
         long totalDocuments = documentRepository.countByOwnerId(userId);
-        long draft = documentRepository.countByOwnerIdAndWorkflowStatus(userId, "DRAFT");
-        long underReview = documentRepository.countByOwnerIdAndWorkflowStatus(userId, "UNDER_REVIEW");
-        long approved = documentRepository.countByOwnerIdAndWorkflowStatus(userId, "APPROVED");
-        long rejected = documentRepository.countByOwnerIdAndWorkflowStatus(userId, "REJECTED");
+        long draft = documentRepository.countByOwnerIdAndStatus(userId, "DRAFT");
+        long underReview = documentRepository.countByOwnerIdAndStatus(userId, "UNDER_REVIEW");
+        long approved = documentRepository.countByOwnerIdAndStatus(userId, "APPROVED");
+        long rejected = documentRepository.countByOwnerIdAndStatus(userId, "REJECTED");
         long archived = documentRepository.countByOwnerIdAndIsArchivedTrue(userId);
 
         long totalWorkflows = workflowInstanceRepository.findBySubmittedById(userId, Pageable.unpaged()).getTotalElements();
@@ -96,10 +91,10 @@ public class DashboardServiceImpl implements DashboardService {
     public Map<String, Long> getDocumentStats() {
         Map<String, Long> stats = new LinkedHashMap<>();
         stats.put("total", documentRepository.count());
-        stats.put("draft", documentRepository.countByWorkflowStatus("DRAFT"));
-        stats.put("underReview", documentRepository.countByWorkflowStatus("UNDER_REVIEW"));
-        stats.put("approved", documentRepository.countByWorkflowStatus("APPROVED"));
-        stats.put("rejected", documentRepository.countByWorkflowStatus("REJECTED"));
+        stats.put("draft", documentRepository.countByStatus("DRAFT"));
+        stats.put("underReview", documentRepository.countByStatus("UNDER_REVIEW"));
+        stats.put("approved", documentRepository.countByStatus("APPROVED"));
+        stats.put("rejected", documentRepository.countByStatus("REJECTED"));
         stats.put("archived", documentRepository.countByIsArchivedTrue());
         return stats;
     }
@@ -145,7 +140,7 @@ public class DashboardServiceImpl implements DashboardService {
             ActivityResponse response = responses.get(i);
             userRepository.findById(log.getUserId()).ifPresentOrElse(
                     user -> {
-                        response.setUserFullName(user.getFullName());
+                        response.setUserFullName(user.getFirstName() + " " + user.getLastName());
                         response.setUserEmail(user.getEmail());
                     },
                     () -> response.setUserFullName("Unknown User")

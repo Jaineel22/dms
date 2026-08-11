@@ -12,6 +12,7 @@ import com.dms.repository.ApprovalRepository;
 import com.dms.repository.DocumentRepository;
 import com.dms.repository.RoleRepository;
 import com.dms.repository.UserWorkflowRepository;
+import com.dms.repository.WorkflowInstanceRepository;
 import com.dms.repository.WorkflowStepRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -36,6 +37,7 @@ public class WorkflowValidator {
     private final UserWorkflowRepository userWorkflowRepository;
     private final ApprovalRepository approvalRepository;
     private final WorkflowStepRepository workflowStepRepository;
+    private final WorkflowInstanceRepository workflowInstanceRepository;
 
     // ═════════════════════════════════════════════════════════════════════════════
     //  PHASE 2 — Workflow Definition Validation
@@ -147,7 +149,10 @@ public class WorkflowValidator {
             throw new WorkflowExecutionException("Cannot submit an archived document for approval");
         }
 
-        if (document.getWorkflowInstanceId() != null && "UNDER_REVIEW".equals(document.getWorkflowStatus())) {
+        boolean hasActiveInstance = workflowInstanceRepository.findByDocumentId(documentId)
+                .map(instance -> Boolean.TRUE.equals(instance.getIsActive()))
+                .orElse(false);
+        if (hasActiveInstance) {
             throw new WorkflowExecutionException(ErrorConstants.WORKFLOW_ALREADY_SUBMITTED);
         }
     }
@@ -156,8 +161,9 @@ public class WorkflowValidator {
      * Ensures the given user has a workflow assigned (used when no explicit workflowId is provided).
      */
     public void validateUserHasWorkflow(Long userId) {
-        userWorkflowRepository.findByUserId(userId)
-                .orElseThrow(() -> new WorkflowExecutionException(ErrorConstants.WORKFLOW_NO_WORKFLOW_ASSIGNED));
+        if (userWorkflowRepository.findByUserIdAndIsActiveTrue(userId).isEmpty()) {
+            throw new WorkflowExecutionException(ErrorConstants.WORKFLOW_NO_WORKFLOW_ASSIGNED);
+        }
     }
 
     /**

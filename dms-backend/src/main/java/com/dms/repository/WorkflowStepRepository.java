@@ -57,4 +57,25 @@ public interface WorkflowStepRepository extends JpaRepository<WorkflowStep, Long
      */
     @Query("SELECT MAX(s.stepNumber) FROM WorkflowStep s WHERE s.workflow.id = :workflowId")
     Integer findMaxStepNumberByWorkflowId(@Param("workflowId") Long workflowId);
+
+    /**
+     * Find the step at a specific step number within a workflow definition.
+     * Used to resolve the next step during approval transitions.
+     */
+    @Query("SELECT s FROM WorkflowStep s WHERE s.workflow.id = :workflowDefinitionId AND s.stepNumber = :stepNumber")
+    Optional<WorkflowStep> findByWorkflowDefinitionIdAndStepNumber(
+            @Param("workflowDefinitionId") Long workflowDefinitionId,
+            @Param("stepNumber") Integer stepNumber);
+
+    /**
+     * Find the first step (lowest step number) of a workflow definition.
+     * Used to route a freshly submitted document to its first approver.
+     */
+    @Query("SELECT s FROM WorkflowStep s WHERE s.workflow.id = :workflowDefinitionId ORDER BY s.stepNumber ASC")
+    List<WorkflowStep> findByWorkflowDefinitionIdOrderByStepNumberAsc(@Param("workflowDefinitionId") Long workflowDefinitionId);
+
+    default Optional<WorkflowStep> findFirstByWorkflowDefinitionIdOrderByStepNumberAsc(Long workflowDefinitionId) {
+        List<WorkflowStep> steps = findByWorkflowDefinitionIdOrderByStepNumberAsc(workflowDefinitionId);
+        return steps.isEmpty() ? Optional.empty() : Optional.of(steps.get(0));
+    }
 }

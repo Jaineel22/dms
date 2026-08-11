@@ -173,6 +173,35 @@ public class HierarchyServiceImpl implements HierarchyService {
         return chain;
     }
 
+    // ─── Approver resolution (used by the workflow/approval engine) ──────────
+
+    @Override
+    @Transactional(readOnly = true)
+    public User getApproverForLevel(Long userId, Integer approvalLevel) {
+        if (approvalLevel == null) {
+            return null;
+        }
+        User current = resolveUser(userId);
+        Set<Long> visited = new HashSet<>();
+        Long managerId = current.getManagerId();
+
+        while (managerId != null && visited.size() < MAX_CHAIN_DEPTH) {
+            if (!visited.add(managerId)) {
+                log.warn("Circular reference detected while resolving approver for user [{}]", userId);
+                break;
+            }
+            User manager = userRepository.findById(managerId).orElse(null);
+            if (manager == null) {
+                break;
+            }
+            if (manager.getEmployeeLevel() != null && manager.getEmployeeLevel() >= approvalLevel) {
+                return manager;
+            }
+            managerId = manager.getManagerId();
+        }
+        return null;
+    }
+
     // ─── Validation ───────────────────────────────────────────────────────────
 
     /**
