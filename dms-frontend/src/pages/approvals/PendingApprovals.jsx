@@ -101,7 +101,7 @@ export default function PendingApprovals() {
           onClose={() => setActionModal(null)}
           onSuccess={() => { setActionModal(null); load(); }}
         />
-      )}
+      )}  
     </div>
   );
 }
