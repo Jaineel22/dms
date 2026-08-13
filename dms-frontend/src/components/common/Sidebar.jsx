@@ -1,70 +1,197 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, Building2, FileText,
-  CheckSquare, BarChart2, Settings, HelpCircle, LogOut, X,
+  LayoutDashboard, FileText, CheckSquare, Users, GitBranch, Bell, ScrollText,
+  ChevronDown, Upload, Search, FolderOpen, Clock, History,
+  Building2, BarChart2, Settings, HelpCircle, LogOut, X,
 } from 'lucide-react';
 
-import useAuth          from '../../hooks/useAuth';
-import { ROUTES }       from '../../routes/RouteConstants';
+import { useAuth } from '../../hooks/useAuth';
+import { ROUTES } from '../../routes/RouteConstants';
 import { getInitials, getAvatarBg } from '../../utils/helpers';
-import { formatRole }   from '../../utils/formatters';
-import { APP_NAME }     from '../../utils/constants';
+import { formatRole } from '../../utils/formatters';
+import { APP_NAME } from '../../utils/constants';
 
 // ─── Nav item definition ──────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
   {
-    label:    'Dashboard',
-    to:       ROUTES.DASHBOARD,
-    icon:     LayoutDashboard,
+    label: 'Dashboard',
+    icon: LayoutDashboard,
+    path: ROUTES.DASHBOARD,
     adminOnly: false,
   },
   {
-    label:    'Users',
-    to:       ROUTES.USERS,
-    icon:     Users,
+    label: 'Users',
+    icon: Users,
+    path: ROUTES.USERS,
     adminOnly: true,
   },
   {
-    label:    'Departments',
-    to:       ROUTES.DEPARTMENTS,
-    icon:     Building2,
+    label: 'Departments',
+    icon: Building2,
+    path: ROUTES.DEPARTMENTS,
     adminOnly: false,
   },
   {
-    label:    'Documents',
-    icon:     FileText,
-    disabled: true,
-    phase:    'Phase 3',
+    label: 'Documents',
+    icon: FileText,
+    children: [
+      { label: 'My Documents', icon: FolderOpen, path: ROUTES.DOCUMENTS || '/documents' },
+      { label: 'Upload', icon: Upload, path: '/documents/upload' },
+      { label: 'Search', icon: Search, path: '/documents/search' },
+    ],
+    adminOnly: false,
   },
   {
-    label:    'Approvals',
-    icon:     CheckSquare,
-    disabled: true,
-    phase:    'Phase 4',
+    label: 'Approvals',
+    icon: CheckSquare,
+    children: [
+      { label: 'Pending', icon: Clock, path: '/approvals/pending' },
+      { label: 'History', icon: History, path: '/approvals/history' },
+    ],
+    adminOnly: false,
   },
   {
-    label:    'Reports',
-    icon:     BarChart2,
+    label: 'Hierarchy',
+    icon: Users,
+    path: '/hierarchy',
+    adminOnly: false,
+  },
+  {
+    label: 'Workflows',
+    icon: GitBranch,
+    path: '/workflows',
+    adminOnly: false,
+  },
+  {
+    label: 'Notifications',
+    icon: Bell,
+    path: '/notifications',
+    adminOnly: false,
+  },
+  {
+    label: 'Audit Logs',
+    icon: ScrollText,
+    path: '/audit',
+    adminOnly: true,
+  },
+  {
+    label: 'Reports',
+    icon: BarChart2,
     disabled: true,
-    phase:    'Phase 5',
+    phase: 'Phase 5',
   },
 ];
 
 const BOTTOM_ITEMS = [
   { label: 'Settings', icon: Settings, disabled: true },
-  { label: 'Support',  icon: HelpCircle, disabled: true },
+  { label: 'Support', icon: HelpCircle, disabled: true },
 ];
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── NavGroup (for menu items with children) ─────────────────────────────────
+
+const NavGroup = ({ item, isActiveGroup, onClose }) => {
+  const [open, setOpen] = useState(isActiveGroup);
+  const Icon = item.icon;
+
+  return (
+    <div>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={[
+          'flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
+          isActiveGroup ? 'bg-primary-600 text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white',
+        ].join(' ')}
+      >
+        <span className="flex items-center gap-3">
+          <Icon size={17} className="shrink-0" /> {item.label}
+        </span>
+        <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="ml-6 mt-1 space-y-0.5 border-l border-white/10 pl-3">
+          {item.children.map((child) => (
+            <NavLink
+              key={child.path}
+              to={child.path}
+              onClick={onClose}
+              className={({ isActive }) =>
+                [
+                  'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-all duration-150',
+                  isActive
+                    ? 'bg-primary-600 text-white'
+                    : 'text-slate-400 hover:bg-white/10 hover:text-white',
+                ].join(' ')
+              }
+            >
+              <child.icon size={15} className="shrink-0" /> {child.label}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── NavItem ──────────────────────────────────────────────────────────────────
+
+const NavItem = ({ item, onClose }) => {
+  const Icon = item.icon;
+  return (
+    <NavLink
+      to={item.path}
+      onClick={onClose}
+      className={({ isActive }) =>
+        [
+          'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
+          isActive
+            ? 'bg-primary-600 text-white'
+            : 'text-slate-300 hover:bg-white/10 hover:text-white',
+        ].join(' ')
+      }
+      end
+    >
+      <Icon size={17} className="shrink-0" />
+      {item.label}
+    </NavLink>
+  );
+};
+
+// ─── DisabledItem ─────────────────────────────────────────────────────────────
+
+const DisabledItem = ({ item }) => {
+  const Icon = item.icon;
+  return (
+    <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 cursor-not-allowed select-none">
+      <Icon size={17} className="shrink-0" />
+      <span>{item.label}</span>
+      {item.phase && (
+        <span className="ml-auto text-[10px] bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded-full">
+          {item.phase}
+        </span>
+      )}
+    </div>
+  );
+};
+
+// ─── Main Sidebar Component ──────────────────────────────────────────────────
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user, isAdmin, logout } = useAuth();
+  const location = useLocation();
 
-  const visibleNavItems = NAV_ITEMS.filter(
-    (item) => !item.adminOnly || isAdmin,
-  );
+  // Filter visible items based on role
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (item.adminOnly && !isAdmin) return false;
+    return true;
+  });
+
+  // Helper to check if any child is active
+  const isGroupActive = (item) => {
+    if (!item.children) return false;
+    return item.children.some((child) => location.pathname.startsWith(child.path));
+  };
 
   return (
     <>
@@ -110,13 +237,24 @@ const Sidebar = ({ isOpen, onClose }) => {
 
         {/* ── Main nav ── */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5 no-scrollbar">
-          {visibleNavItems.map((item) =>
-            item.disabled ? (
-              <DisabledItem key={item.label} item={item} />
-            ) : (
-              <NavItem key={item.label} item={item} onClose={onClose} />
-            ),
-          )}
+          {visibleNavItems.map((item) => {
+            if (item.disabled) {
+              return <DisabledItem key={item.label} item={item} />;
+            }
+
+            if (item.children) {
+              return (
+                <NavGroup
+                  key={item.label}
+                  item={item}
+                  isActiveGroup={isGroupActive(item)}
+                  onClose={onClose}
+                />
+              );
+            }
+
+            return <NavItem key={item.label} item={item} onClose={onClose} />;
+          })}
 
           <div className="my-3 border-t border-white/10" />
 
@@ -151,43 +289,6 @@ const Sidebar = ({ isOpen, onClose }) => {
         </div>
       </aside>
     </>
-  );
-};
-
-// ─── NavItem ──────────────────────────────────────────────────────────────────
-
-const NavItem = ({ item, onClose }) => {
-  const Icon = item.icon;
-  return (
-    <NavLink
-      to={item.to}
-      onClick={onClose}
-      className={({ isActive }) => [
-        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
-        isActive
-          ? 'bg-primary-600 text-white'
-          : 'text-slate-300 hover:bg-white/10 hover:text-white',
-      ].join(' ')}
-      end
-    >
-      <Icon size={17} className="shrink-0" />
-      {item.label}
-    </NavLink>
-  );
-};
-
-const DisabledItem = ({ item }) => {
-  const Icon = item.icon;
-  return (
-    <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 cursor-not-allowed select-none">
-      <Icon size={17} className="shrink-0" />
-      <span>{item.label}</span>
-      {item.phase && (
-        <span className="ml-auto text-[10px] bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded-full">
-          {item.phase}
-        </span>
-      )}
-    </div>
   );
 };
 
