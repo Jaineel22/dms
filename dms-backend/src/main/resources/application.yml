@@ -1,32 +1,20 @@
+# ============================================================
+# Base configuration — profile-independent.
+# Environment-specific settings (datasource, JWT secret, log levels,
+# Hibernate SQL logging) live in application-dev.yml / application-prod.yml.
+# Active profile defaults to 'dev'; override with SPRING_PROFILES_ACTIVE.
+# ============================================================
 spring:
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
   application:
     name: dms-backend
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_URL:jdbc:mysql://localhost:3306/dms_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:root123}
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-      pool-name: DMS-HikariPool
+
+  jackson:
+    time-zone: UTC
 
   jpa:
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
-        format_sql: true
-        show_sql: false
-        use_sql_comments: true
-        jdbc:
-          time_zone: UTC
     open-in-view: false
 
   flyway:
@@ -50,10 +38,10 @@ file:
     max-file-size: ${FILE_MAX_SIZE:10485760}   # 10 MB in bytes
     allowed-extensions: pdf,docx,doc,xlsx,xls,png,jpg,jpeg,txt
 
+# ─── JWT (secret is set per-profile) ──────────────────────────────────────────
 jwt:
-  secret: ${JWT_SECRET:dms-super-secret-key-must-be-at-least-256-bits-long-for-hs512-algorithm}
-  expiration: ${JWT_EXPIRATION:7200000}
-  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+  expiration: ${JWT_EXPIRATION:7200000}          # 2 hours
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}   # 7 days
   issuer: DMS-Application
 
 server:
@@ -87,11 +75,6 @@ management:
       show-details: when-authorized
 
 logging:
-  level:
-    com.dms: DEBUG
-    org.springframework.security: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

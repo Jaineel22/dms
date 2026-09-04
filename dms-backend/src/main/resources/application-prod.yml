@@ -1,0 +1,45 @@
+# ============================================================
+# Production profile — no fallback values.
+# Every secret and connection detail MUST be supplied via environment
+# variables. The app will fail fast on startup if any are missing.
+# Activate with: SPRING_PROFILES_ACTIVE=prod
+# ============================================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: DMS-HikariPool
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: false
+        show_sql: false
+        use_sql_comments: false
+        jdbc:
+          time_zone: UTC
+
+jwt:
+  # Required. No fallback — must be provided via the JWT_SECRET env var.
+  secret: ${JWT_SECRET}
+
+logging:
+  level:
+    com.dms: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
