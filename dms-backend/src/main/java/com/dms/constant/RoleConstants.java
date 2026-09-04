@@ -13,13 +13,15 @@ public final class RoleConstants {
 
     // ─── Full authority strings (stored in DB, seeded, and placed in JWT claims) ─
 
-    public static final String ROLE_ADMIN = "ROLE_ADMIN";
-    public static final String ROLE_USER  = "ROLE_USER";
+    public static final String ROLE_ADMIN  = "ROLE_ADMIN";
+    public static final String ROLE_USER   = "ROLE_USER";
+    public static final String ROLE_VIEWER = "ROLE_VIEWER";
 
     // ─── Short names (Spring strips "ROLE_" prefix for hasRole() checks) ──────
 
-    public static final String ADMIN = "ADMIN";
-    public static final String USER  = "USER";
+    public static final String ADMIN  = "ADMIN";
+    public static final String USER   = "USER";
+    public static final String VIEWER = "VIEWER";
 
     // ─── Ready-made SpEL expressions for @PreAuthorize ────────────────────────
 
