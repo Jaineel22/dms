@@ -9,6 +9,7 @@ import com.dms.exception.BusinessException;
 import com.dms.exception.ResourceNotFoundException;
 import com.dms.repository.HierarchyHistoryRepository;
 import com.dms.repository.UserRepository;
+import com.dms.service.AuditService;
 import com.dms.service.HierarchyService;
 import com.dms.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,6 +36,7 @@ public class HierarchyServiceImpl implements HierarchyService {
     private final UserRepository          userRepository;
     private final HierarchyHistoryRepository historyRepository;
     private final SecurityUtils           securityUtils;
+    private final AuditService            auditService;
 
     // ─── Assign manager ───────────────────────────────────────────────────────
 
@@ -59,6 +63,9 @@ public class HierarchyServiceImpl implements HierarchyService {
 
         log.info("Manager [{}] assigned to user [{}] by [{}]",
                 manager.getEmail(), user.getEmail(), securityUtils.getCurrentEmail());
+
+        safeAudit("HIERARCHY", user.getId(), "ASSIGN_MANAGER",
+                null, managerValue(manager.getId(), request.getReason()));
 
         return buildHierarchyResponse(user, manager);
     }
@@ -88,6 +95,9 @@ public class HierarchyServiceImpl implements HierarchyService {
                 user.getEmail(), previousManagerId, newManager.getId(),
                 securityUtils.getCurrentEmail());
 
+        safeAudit("HIERARCHY", user.getId(), "UPDATE_MANAGER",
+                managerValue(previousManagerId, null), managerValue(newManager.getId(), reason));
+
         return buildHierarchyResponse(user, newManager);
     }
 
@@ -111,6 +121,30 @@ public class HierarchyServiceImpl implements HierarchyService {
 
         log.info("Manager removed from user [{}] by [{}]",
                 user.getEmail(), securityUtils.getCurrentEmail());
+
+        safeAudit("HIERARCHY", user.getId(), "UPDATE_MANAGER",
+                managerValue(previousManagerId, null), null);
+    }
+
+    private Map<String, Object> managerValue(Long managerId, String reason) {
+        if (managerId == null) {
+            return null;
+        }
+        Map<String, Object> value = new LinkedHashMap<>();
+        value.put("managerId", managerId);
+        if (reason != null && !reason.isBlank()) {
+            value.put("reason", reason);
+        }
+        return value;
+    }
+
+    /** Best-effort audit: a logging failure must never break the business operation. */
+    private void safeAudit(String entityType, Long entityId, String action, Object oldValue, Object newValue) {
+        try {
+            auditService.logAction(entityType, entityId, action, oldValue, newValue);
+        } catch (Exception e) {
+            log.warn("Failed to write audit log for {} {}:{}: {}", action, entityType, entityId, e.getMessage());
+        }
     }
 
     // ─── Get reporting hierarchy (single user + manager details) ─────────────
