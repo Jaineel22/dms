@@ -15,6 +15,7 @@ import com.dms.mapper.UserMapper;
 import com.dms.repository.DepartmentRepository;
 import com.dms.repository.RoleRepository;
 import com.dms.repository.UserRepository;
+import com.dms.service.AuditService;
 import com.dms.service.UserService;
 import com.dms.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final SecurityUtils securityUtils;
+    private final AuditService auditService;
 
     // ─── Create ───────────────────────────────────────────────────────────────
 
@@ -74,7 +76,9 @@ public class UserServiceImpl implements UserService {
         User saved = userRepository.save(user);
         log.info("Admin [{}] created user [{}]", securityUtils.getCurrentEmail(), saved.getEmail());
 
-        return userMapper.toResponse(saved);
+        UserResponse response = userMapper.toResponse(saved);
+        safeAudit("USER", saved.getId(), "CREATE", null, response);
+        return response;
     }
 
     // ─── Update ───────────────────────────────────────────────────────────────
@@ -83,6 +87,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponse updateUser(Long userId, UserUpdateRequest request) {
         User user = resolveUser(userId);
+        UserResponse before = userMapper.toResponse(user);
 
         // Uniqueness checks (exclude self)
         if (StringUtils.hasText(request.getEmail())
@@ -114,7 +119,9 @@ public class UserServiceImpl implements UserService {
         User updated = userRepository.save(user);
         log.info("Admin [{}] updated user [{}]", securityUtils.getCurrentEmail(), updated.getEmail());
 
-        return userMapper.toResponse(updated);
+        UserResponse response = userMapper.toResponse(updated);
+        safeAudit("USER", userId, "UPDATE", before, response);
+        return response;
     }
 
     // ─── Delete (soft) ────────────────────────────────────────────────────────
@@ -126,6 +133,7 @@ public class UserServiceImpl implements UserService {
         user.setIsActive(false);
         userRepository.save(user);
         log.info("Admin [{}] soft-deleted user [{}]", securityUtils.getCurrentEmail(), user.getEmail());
+        safeAudit("USER", userId, "DELETE", null, null);
     }
 
     // ─── Read ─────────────────────────────────────────────────────────────────
@@ -161,6 +169,7 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         log.info("Admin [{}] toggled user [{}] status to [{}]",
                 securityUtils.getCurrentEmail(), user.getEmail(), newStatus);
+        safeAudit("USER", userId, "UPDATE", null, null);
     }
 
     // ─── Change password ──────────────────────────────────────────────────────
@@ -191,6 +200,7 @@ public class UserServiceImpl implements UserService {
 
         log.info("Password changed for user [{}] by [{}]",
                 target.getEmail(), caller.getEmail());
+        safeAudit("USER", userId, "CHANGE_PASSWORD", null, null);
     }
 
     // ─── Reset password ───────────────────────────────────────────────────────
@@ -207,8 +217,18 @@ public class UserServiceImpl implements UserService {
 
         log.info("Admin [{}] reset password for user [{}]",
                 securityUtils.getCurrentEmail(), user.getEmail());
+        safeAudit("USER", userId, "RESET_PASSWORD", null, null);
 
         return temporaryPassword;
+    }
+
+    /** Best-effort audit: a logging failure must never break the business operation. */
+    private void safeAudit(String entityType, Long entityId, String action, Object oldValue, Object newValue) {
+        try {
+            auditService.logAction(entityType, entityId, action, oldValue, newValue);
+        } catch (Exception e) {
+            log.warn("Failed to write audit log for {} {}:{}: {}", action, entityType, entityId, e.getMessage());
+        }
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
