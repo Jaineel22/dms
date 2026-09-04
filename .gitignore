@@ -1,5 +1,6 @@
-cd D:\DMS
-@"
+# ============================================================
+# Java / Spring Boot
+# ============================================================
 # Compiled class files
 *.class
 *.log
@@ -19,28 +20,93 @@ buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
 
+# Gradle
+.gradle/
+build/
+gradle-app.setting
+!gradle-wrapper.jar
+
+# ============================================================
 # IDE
+# ============================================================
+# IntelliJ IDEA
 .idea/
 *.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
 .vscode/
+*.code-workspace
+
+# Eclipse
 .settings/
 .classpath
 .project
 .factorypath
 
+# NetBeans
+nbproject/
+private/
+
+# ============================================================
 # OS
+# ============================================================
 Thumbs.db
 .DS_Store
+*.swp
+*.swo
+*~
 
-# Environment
+# ============================================================
+# Environment & Secrets
+# ============================================================
 .env
 .env.local
 .env.*.local
+.env.production
 
-# Application logs
+# ============================================================
+# Application Logs
+# ============================================================
 logs/
 *.log
+*.log.gz
 
+# ============================================================
+# Build & Generated
+# ============================================================
 # MapStruct generated sources
 target/generated-sources/
-"@ | Out-File -FilePath .gitignore -Encoding UTF8 -NoNewline
+target/generated-test-sources/
+
+# ============================================================
+# Frontend (React + Vite)
+# ============================================================
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# ============================================================
+# Backend Uploads
+# ============================================================
+uploads/
+*.upload
+
+# ============================================================
+# Test
+# ============================================================
+*.test
+*.spec
+coverage/
+
+# ============================================================
+# Misc
+# ============================================================
+*.tmp
+*.bak
+*.old
+*.orig
+*.rej
