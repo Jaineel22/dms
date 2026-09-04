@@ -22,6 +22,7 @@ import com.dms.repository.DepartmentRepository;
 import com.dms.repository.DocumentCategoryRepository;
 import com.dms.repository.DocumentRepository;
 import com.dms.repository.DocumentVersionRepository;
+import com.dms.service.AuditService;
 import com.dms.service.DocumentService;
 import com.dms.service.FileStorageService;
 import com.dms.util.SecurityUtils;
@@ -62,6 +63,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final DocumentVersionMapper      versionMapper;
     private final FileStorageService         fileStorageService;
     private final SecurityUtils              securityUtils;
+    private final AuditService               auditService;
 
     // ─── Upload new document ──────────────────────────────────────────────────
 
@@ -129,6 +131,8 @@ public class DocumentServiceImpl implements DocumentService {
         log.info("Document '{}' uploaded as [{}] by [{}]",
                 document.getTitle(), docNum, owner.getEmail());
 
+        safeAudit("DOCUMENT", saved.getId(), "UPLOAD", null, documentMapper.toResponse(saved));
+
         return DocumentUploadResponse.builder()
                 .documentId(saved.getId())
                 .documentNumber(saved.getDocumentNumber())
@@ -147,6 +151,7 @@ public class DocumentServiceImpl implements DocumentService {
     public DocumentResponse updateDocument(Long documentId, DocumentUpdateRequest request) {
         Document document = resolveDocument(documentId);
         requireNotArchived(document);
+        DocumentResponse before = documentMapper.toResponse(document);
 
         // Resolve category if provided
         if (request.getCategoryId() != null) {
@@ -172,7 +177,9 @@ public class DocumentServiceImpl implements DocumentService {
         Document updated = documentRepository.save(document);
 
         log.info("Document [{}] updated by [{}]", documentId, securityUtils.getCurrentEmail());
-        return documentMapper.toResponse(updated);
+        DocumentResponse response = documentMapper.toResponse(updated);
+        safeAudit("DOCUMENT", documentId, "UPDATE", before, response);
+        return response;
     }
 
     // ─── Read ─────────────────────────────────────────────────────────────────
@@ -258,6 +265,7 @@ public class DocumentServiceImpl implements DocumentService {
         documentRepository.save(document);
         log.info("Document [{}] deleted (archived) by [{}]",
                 documentId, securityUtils.getCurrentEmail());
+        safeAudit("DOCUMENT", documentId, "DELETE", null, null);
     }
 
     @Override
@@ -272,6 +280,7 @@ public class DocumentServiceImpl implements DocumentService {
         documentRepository.save(document);
 
         log.info("Document [{}] archived by [{}]", documentId, securityUtils.getCurrentEmail());
+        safeAudit("DOCUMENT", documentId, "ARCHIVE", null, null);
     }
 
     @Override
@@ -289,6 +298,7 @@ public class DocumentServiceImpl implements DocumentService {
         documentRepository.save(document);
 
         log.info("Document [{}] restored by [{}]", documentId, securityUtils.getCurrentEmail());
+        safeAudit("DOCUMENT", documentId, "RESTORE", null, null);
     }
 
     // ─── Upload new version ───────────────────────────────────────────────────
@@ -337,6 +347,8 @@ public class DocumentServiceImpl implements DocumentService {
 
         log.info("New version v{} uploaded for document [{}] by [{}]",
                 nextVersion, documentId, uploader.getEmail());
+
+        safeAudit("DOCUMENT_VERSION", documentId, "UPLOAD", null, versionMapper.toResponse(newVersion));
 
         return DocumentUploadResponse.builder()
                 .documentId(document.getId())
@@ -490,6 +502,15 @@ public class DocumentServiceImpl implements DocumentService {
     private Document resolveDocument(Long documentId) {
         return documentRepository.findById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document", "id", documentId));
+    }
+
+    /** Best-effort audit: a logging failure must never break the business operation. */
+    private void safeAudit(String entityType, Long entityId, String action, Object oldValue, Object newValue) {
+        try {
+            auditService.logAction(entityType, entityId, action, oldValue, newValue);
+        } catch (Exception e) {
+            log.warn("Failed to write audit log for {} {}:{}: {}", action, entityType, entityId, e.getMessage());
+        }
     }
 
     /**
