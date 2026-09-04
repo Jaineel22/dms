@@ -7,6 +7,7 @@ import com.dms.dto.response.WorkflowInstanceResponse;
 import com.dms.dto.response.WorkflowSummaryResponse;
 import com.dms.entity.Approval;
 import com.dms.entity.Document;
+import com.dms.entity.Notification;
 import com.dms.entity.User;
 import com.dms.entity.UserWorkflow;
 import com.dms.entity.WorkflowDefinition;
@@ -25,6 +26,7 @@ import com.dms.repository.WorkflowInstanceRepository;
 import com.dms.repository.WorkflowStepRepository;
 import com.dms.util.SecurityUtils;
 import com.dms.service.HierarchyService;
+import com.dms.service.NotificationService;
 import com.dms.service.WorkflowExecutionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +59,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     private final UserWorkflowRepository userWorkflowRepository;
     private final UserRepository userRepository;
     private final HierarchyService hierarchyService;
+    private final NotificationService notificationService;
     private final WorkflowInstanceMapper workflowInstanceMapper;
     private final ApprovalMapper approvalMapper;
     private final SecurityUtils securityUtils;
@@ -129,7 +132,27 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         log.info("Document {} submitted to workflow {} by user {}", document.getId(),
                 workflowDefinition.getId(), currentUserId);
 
+        // Notify the submitter and the first approver.
+        String docLink = "/documents/" + document.getId();
+        safeNotify(submitter.getId(), Notification.Type.DOCUMENT_SUBMITTED,
+                "Document submitted",
+                "Your document \"" + document.getTitle() + "\" has been submitted for approval.",
+                docLink);
+        safeNotify(approver.getId(), Notification.Type.APPROVAL_REQUIRED,
+                "Approval required",
+                "You have a new approval request for \"" + document.getTitle() + "\".",
+                docLink);
+
         return workflowInstanceMapper.toResponse(saved);
+    }
+
+    /** Best-effort notification: a delivery failure must never break the business transaction. */
+    private void safeNotify(Long userId, String type, String title, String message, String link) {
+        try {
+            notificationService.createNotificationForUser(userId, type, title, message, link);
+        } catch (Exception e) {
+            log.warn("Failed to send {} notification to user {}: {}", type, userId, e.getMessage());
+        }
     }
 
     @Override
