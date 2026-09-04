@@ -7,6 +7,7 @@ import com.dms.dto.response.ApprovalResponse;
 import com.dms.entity.Approval;
 import com.dms.entity.Document;
 import com.dms.entity.Escalation;
+import com.dms.entity.Notification;
 import com.dms.entity.User;
 import com.dms.entity.WorkflowInstance;
 import com.dms.entity.WorkflowStep;
@@ -20,7 +21,9 @@ import com.dms.repository.WorkflowInstanceRepository;
 import com.dms.repository.WorkflowStepRepository;
 import com.dms.util.SecurityUtils;
 import com.dms.service.ApprovalService;
+import com.dms.service.AuditService;
 import com.dms.service.HierarchyService;
+import com.dms.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,7 +34,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -45,6 +50,8 @@ public class ApprovalServiceImpl implements ApprovalService {
     private final EscalationRepository escalationRepository;
     private final UserRepository userRepository;
     private final HierarchyService hierarchyService;
+    private final NotificationService notificationService;
+    private final AuditService auditService;
     private final ApprovalMapper approvalMapper;
     private final SecurityUtils securityUtils;
 
@@ -65,6 +72,7 @@ public class ApprovalServiceImpl implements ApprovalService {
                 .orElse(null);
 
         Document document = instance.getDocument();
+        User nextApproverToNotify = null;
 
         if (nextStep == null) {
             instance.setStatus(WorkflowInstance.WorkflowInstanceStatus.APPROVED);
@@ -93,13 +101,30 @@ public class ApprovalServiceImpl implements ApprovalService {
             nextApproval.setApprover(nextApprover);
             nextApproval.setIsCurrent(true);
             approvalRepository.save(nextApproval);
+            nextApproverToNotify = nextApprover;
         }
 
         workflowInstanceRepository.save(instance);
         documentRepository.save(document);
 
         log.info("Approval {} approved by user {}", currentApproval.getId(), currentUserId);
-        return approvalMapper.toResponse(currentApproval);
+        ApprovalResponse response = approvalMapper.toResponse(currentApproval);
+
+        String docLink = "/documents/" + document.getId();
+        if (nextApproverToNotify != null) {
+            safeNotify(nextApproverToNotify.getId(), Notification.Type.APPROVAL_REQUIRED,
+                    "Approval required",
+                    "You have a new approval request for \"" + document.getTitle() + "\".",
+                    docLink);
+        } else {
+            safeNotify(documentOwnerId(document), Notification.Type.APPROVED,
+                    "Document approved",
+                    "Your document \"" + document.getTitle() + "\" has been fully approved.",
+                    docLink);
+        }
+        safeAudit("APPROVAL", currentApproval.getId(), "APPROVE", null, response);
+
+        return response;
     }
 
     @Override
@@ -123,7 +148,16 @@ public class ApprovalServiceImpl implements ApprovalService {
         documentRepository.save(document);
 
         log.info("Approval {} rejected by user {}", currentApproval.getId(), currentUserId);
-        return approvalMapper.toResponse(currentApproval);
+        ApprovalResponse response = approvalMapper.toResponse(currentApproval);
+
+        safeNotify(documentOwnerId(document), Notification.Type.REJECTED,
+                "Document rejected",
+                "Your document \"" + document.getTitle() + "\" was rejected."
+                        + commentSuffix(request.getComments()),
+                "/documents/" + document.getId());
+        safeAudit("APPROVAL", currentApproval.getId(), "REJECT", null, response);
+
+        return response;
     }
 
     @Override
@@ -146,7 +180,16 @@ public class ApprovalServiceImpl implements ApprovalService {
         documentRepository.save(document);
 
         log.info("Approval {} sent back by user {}", currentApproval.getId(), currentUserId);
-        return approvalMapper.toResponse(currentApproval);
+        ApprovalResponse response = approvalMapper.toResponse(currentApproval);
+
+        safeNotify(documentOwnerId(document), Notification.Type.SENT_BACK,
+                "Document sent back",
+                "Your document \"" + document.getTitle() + "\" was sent back for changes."
+                        + commentSuffix(request.getComments()),
+                "/documents/" + document.getId());
+        safeAudit("APPROVAL", currentApproval.getId(), "SEND_BACK", null, response);
+
+        return response;
     }
 
     @Override
@@ -189,15 +232,60 @@ public class ApprovalServiceImpl implements ApprovalService {
         instance.setCurrentApprover(toUser);
         workflowInstanceRepository.save(instance);
 
-        approvalRepository.findByWorkflowInstanceIdAndIsCurrentTrue(instanceId).ifPresent(currentApproval -> {
-            currentApproval.setApprover(toUser);
-            approvalRepository.save(currentApproval);
-        });
+        Long currentApprovalId = approvalRepository.findByWorkflowInstanceIdAndIsCurrentTrue(instanceId)
+                .map(currentApproval -> {
+                    currentApproval.setApprover(toUser);
+                    approvalRepository.save(currentApproval);
+                    return currentApproval.getId();
+                })
+                .orElse(null);
 
         log.info("Workflow instance {} escalated from user {} to user {}",
                 instanceId, fromUser != null ? fromUser.getId() : null, toUserId);
 
-        // TODO: wire to the notification service (e.g. email/in-app) once available to alert the new approver.
+        Document document = instance.getDocument();
+        safeNotify(toUser.getId(), Notification.Type.ESCALATED,
+                "Approval escalated to you",
+                "An approval for \"" + document.getTitle() + "\" has been escalated to you."
+                        + commentSuffix(reason),
+                "/documents/" + document.getId());
+
+        Map<String, Object> newValue = new LinkedHashMap<>();
+        newValue.put("instanceId", instanceId);
+        newValue.put("fromUserId", fromUser != null ? fromUser.getId() : null);
+        newValue.put("toUserId", toUserId);
+        newValue.put("reason", reason);
+        safeAudit("APPROVAL", currentApprovalId != null ? currentApprovalId : instanceId,
+                "ESCALATE", null, newValue);
+    }
+
+    private Long documentOwnerId(Document document) {
+        return document.getOwner() != null ? document.getOwner().getId() : null;
+    }
+
+    private String commentSuffix(String comments) {
+        return (comments != null && !comments.isBlank()) ? " Comment: " + comments : "";
+    }
+
+    /** Best-effort notification: a delivery failure must never break the business transaction. */
+    private void safeNotify(Long userId, String type, String title, String message, String link) {
+        if (userId == null) {
+            return;
+        }
+        try {
+            notificationService.createNotificationForUser(userId, type, title, message, link);
+        } catch (Exception e) {
+            log.warn("Failed to send {} notification to user {}: {}", type, userId, e.getMessage());
+        }
+    }
+
+    /** Best-effort audit: a logging failure must never break the business transaction. */
+    private void safeAudit(String entityType, Long entityId, String action, Object oldValue, Object newValue) {
+        try {
+            auditService.logAction(entityType, entityId, action, oldValue, newValue);
+        } catch (Exception e) {
+            log.warn("Failed to write audit log for {} {}:{}: {}", action, entityType, entityId, e.getMessage());
+        }
     }
 
     private void closeOutApproval(Approval approval, Approval.ApprovalAction action, String comments, MultipartFile attachment) {
