@@ -11,6 +11,7 @@ import com.dms.mapper.DepartmentMapper;
 import com.dms.mapper.UserMapper;
 import com.dms.repository.DepartmentRepository;
 import com.dms.repository.UserRepository;
+import com.dms.service.AuditService;
 import com.dms.service.DepartmentService;
 import com.dms.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     private final DepartmentMapper     departmentMapper;
     private final UserMapper           userMapper;
     private final SecurityUtils        securityUtils;
+    private final AuditService         auditService;
 
     // ─── Create ───────────────────────────────────────────────────────────────
 
@@ -52,7 +54,9 @@ public class DepartmentServiceImpl implements DepartmentService {
         log.info("Admin [{}] created department [{}]",
                 securityUtils.getCurrentEmail(), saved.getName());
 
-        return departmentMapper.toResponse(saved, 0L);
+        DepartmentResponse response = departmentMapper.toResponse(saved, 0L);
+        safeAudit("DEPARTMENT", saved.getId(), "CREATE", null, response);
+        return response;
     }
 
     // ─── Update ───────────────────────────────────────────────────────────────
@@ -61,6 +65,8 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Transactional
     public DepartmentResponse updateDepartment(Long deptId, DepartmentRequest request) {
         Department department = resolveDepartment(deptId);
+        DepartmentResponse before = departmentMapper.toResponse(
+                department, departmentRepository.countActiveUsersByDepartmentId(deptId));
 
         if (departmentRepository.existsByNameAndIdNot(request.getName(), deptId)) {
             throw new DuplicateResourceException("Department", "name", request.getName());
@@ -77,7 +83,9 @@ public class DepartmentServiceImpl implements DepartmentService {
         log.info("Admin [{}] updated department [{}]",
                 securityUtils.getCurrentEmail(), updated.getName());
 
-        return departmentMapper.toResponse(updated, userCount);
+        DepartmentResponse response = departmentMapper.toResponse(updated, userCount);
+        safeAudit("DEPARTMENT", deptId, "UPDATE", before, response);
+        return response;
     }
 
     // ─── Delete ───────────────────────────────────────────────────────────────
@@ -99,6 +107,16 @@ public class DepartmentServiceImpl implements DepartmentService {
 
         log.info("Admin [{}] soft-deleted department [{}]",
                 securityUtils.getCurrentEmail(), department.getName());
+        safeAudit("DEPARTMENT", deptId, "DELETE", null, null);
+    }
+
+    /** Best-effort audit: a logging failure must never break the business operation. */
+    private void safeAudit(String entityType, Long entityId, String action, Object oldValue, Object newValue) {
+        try {
+            auditService.logAction(entityType, entityId, action, oldValue, newValue);
+        } catch (Exception e) {
+            log.warn("Failed to write audit log for {} {}:{}: {}", action, entityType, entityId, e.getMessage());
+        }
     }
 
     // ─── Read — single ────────────────────────────────────────────────────────
