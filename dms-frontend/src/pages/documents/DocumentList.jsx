@@ -212,7 +212,13 @@ export default function DocumentList() {
             ))}
           </tbody>
         </table>
-        <Pagination page={page} onPageChange={setPageNumber} />
+        <Pagination
+          page={page?.number ?? pageNumber}
+          totalPages={page?.totalPages ?? 0}
+          totalElements={page?.totalElements ?? 0}
+          size={page?.size ?? 20}
+          onPageChange={setPageNumber}
+        />
       </div>
 
       <ConfirmDialog

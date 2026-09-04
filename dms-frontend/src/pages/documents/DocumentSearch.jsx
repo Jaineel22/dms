@@ -143,7 +143,13 @@ export default function DocumentSearch() {
               ))}
             </tbody>
           </table>
-          <Pagination page={page} onPageChange={runSearch} />
+          <Pagination
+            page={page?.number ?? pageNumber}
+            totalPages={page?.totalPages ?? 0}
+            totalElements={page?.totalElements ?? 0}
+            size={page?.size ?? 20}
+            onPageChange={runSearch}
+          />
         </div>
       )}
     </div>

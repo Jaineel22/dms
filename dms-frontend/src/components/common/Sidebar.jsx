@@ -6,7 +6,7 @@ import {
   Building2, BarChart2, Settings, HelpCircle, LogOut, X,
 } from 'lucide-react';
 
-import { useAuth } from '../../hooks/useAuth';
+import useAuth from '../../hooks/useAuth';
 import { ROUTES } from '../../routes/RouteConstants';
 import { getInitials, getAvatarBg } from '../../utils/helpers';
 import { formatRole } from '../../utils/formatters';
