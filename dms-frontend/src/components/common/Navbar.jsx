@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, Bell, ChevronDown, User, LogOut, Settings } from 'lucide-react';
+import { Menu, ChevronDown, User, LogOut, Settings } from 'lucide-react';
 
 import useAuth          from '../../hooks/useAuth';
 import Breadcrumb       from './Breadcrumb';
+import NotificationBell from './NotificationBell';
 import { ROUTES }       from '../../routes/RouteConstants';
 import { getInitials, getAvatarBg } from '../../utils/helpers';
 import { formatRole }   from '../../utils/formatters';
@@ -43,15 +44,8 @@ const Navbar = ({ onMenuToggle }) => {
       </div>
 
       <div className="flex items-center gap-2 ml-auto">
-        {/* Notifications — Phase 5 placeholder */}
-        <button
-          className="relative p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
-          aria-label="Notifications (coming soon)"
-          title="Notifications (Phase 5)"
-          disabled
-        >
-          <Bell size={18} />
-        </button>
+        {/* Notifications */}
+        <NotificationBell />
 
         {/* Profile dropdown */}
         <div className="relative" ref={dropdownRef}>

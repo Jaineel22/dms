@@ -35,4 +35,7 @@ const useAuth = () => {
   return context;
 };
 
+// Support both `import useAuth from` and `import { useAuth } from` styles —
+// some components (e.g. Sidebar) use the named form.
+export { useAuth };
 export default useAuth;

@@ -23,6 +23,41 @@ export const ROUTES = {
   DEPARTMENTS:     '/departments',
   DEPARTMENTS_EDIT:'/departments/:id/edit',
 
+  // ── Dashboard ─────────────────────────────────────────────────────────────
+  DASHBOARD_STATS: '/dashboard/stats',
+
+  // ── Documents ─────────────────────────────────────────────────────────────
+  DOCUMENTS:          '/documents',
+  DOCUMENTS_UPLOAD:   '/documents/upload',
+  DOCUMENTS_SEARCH:   '/documents/search',
+  DOCUMENTS_DETAILS:  '/documents/:id',
+  DOCUMENTS_EDIT:     '/documents/:id/edit',
+  DOCUMENTS_VERSIONS: '/documents/:id/versions',
+
+  // ── Approvals ─────────────────────────────────────────────────────────────
+  APPROVALS_PENDING: '/approvals/pending',
+  APPROVALS_HISTORY: '/approvals/history',
+  APPROVALS_THREAD:  '/approvals/thread/:id',
+
+  // ── Hierarchy ─────────────────────────────────────────────────────────────
+  HIERARCHY:        '/hierarchy',
+  HIERARCHY_ASSIGN: '/hierarchy/assign',
+  HIERARCHY_TEAM:   '/hierarchy/team/:id',
+
+  // ── Workflows ─────────────────────────────────────────────────────────────
+  WORKFLOWS:        '/workflows',
+  WORKFLOWS_CREATE: '/workflows/create',
+  WORKFLOWS_EDIT:   '/workflows/:id/edit',
+  WORKFLOWS_STEPS:  '/workflows/steps',
+  WORKFLOWS_ASSIGN: '/workflows/assign',
+
+  // ── Notifications ─────────────────────────────────────────────────────────
+  NOTIFICATIONS:             '/notifications',
+  NOTIFICATIONS_PREFERENCES: '/notifications/preferences',
+
+  // ── Audit (Admin only) ────────────────────────────────────────────────────
+  AUDIT: '/audit',
+
   // ── Fallback ──────────────────────────────────────────────────────────────
   NOT_FOUND: '*',
 };
