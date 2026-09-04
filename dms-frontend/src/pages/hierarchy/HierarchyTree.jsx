@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ChevronDown, ChevronRight, User as UserIcon } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import useAuth from '../../hooks/useAuth';
 import hierarchyApi from '../../api/hierarchyApi';
 
 function TreeNode({ node, onSelect, isAdmin }) {
@@ -45,8 +45,7 @@ function TreeNode({ node, onSelect, isAdmin }) {
 }
 
 export default function HierarchyTree() {
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [tree, setTree] = useState(null);
   const [loading, setLoading] = useState(true);

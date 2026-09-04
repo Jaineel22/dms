@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import {
   Upload, Search, Download, Eye, Pencil, Archive, ArchiveRestore, Trash2, Send,
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import useAuth from '../../hooks/useAuth';
 import documentApi from '../../api/documentApi';
 import approvalApi from '../../api/approvalApi';
 import Pagination from '../../components/common/Pagination';
@@ -19,8 +19,7 @@ const STATUS_STYLES = {
 };
 
 export default function DocumentList() {
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const [page, setPage] = useState(null);
