@@ -3,6 +3,7 @@ package com.dms.util;
 import com.dms.constant.RoleConstants;
 import com.dms.entity.User;
 import com.dms.exception.ResourceNotFoundException;
+import com.dms.repository.ApprovalRepository;
 import com.dms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Component;
 public class SecurityUtils {
 
     private final UserRepository userRepository;
+    private final ApprovalRepository approvalRepository;
 
     // ─── Current-user resolution ──────────────────────────────────────────────
 
@@ -109,6 +111,31 @@ public class SecurityUtils {
         }
         try {
             return getCurrentUserId().equals(userId);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Returns {@code true} if the current caller is the assigned approver of the
+     * current (pending) approval for the given workflow instance.
+     *
+     * <p>Designed for {@code @PreAuthorize} on the escalation endpoint, whose
+     * {@code {id}} path variable is a <em>workflow instance</em> id:</p>
+     * <pre>
+     *   &#64;PreAuthorize("hasRole('ADMIN') or @securityUtils.isCurrentApprover(#id)")
+     * </pre>
+     *
+     * @param workflowInstanceId the workflow instance id from the request path
+     */
+    public boolean isCurrentApprover(Long workflowInstanceId) {
+        if (workflowInstanceId == null) {
+            return false;
+        }
+        try {
+            Long userId = getCurrentUserId();
+            return approvalRepository
+                    .existsByWorkflowInstanceIdAndApproverIdAndIsCurrentTrue(workflowInstanceId, userId);
         } catch (Exception e) {
             return false;
         }

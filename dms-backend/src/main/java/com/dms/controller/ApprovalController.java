@@ -85,7 +85,7 @@ public class ApprovalController {
 
     @Operation(summary = "Escalate a pending workflow instance to another approver")
     @PostMapping(ApiConstants.APPROVAL_ESCALATE)
-    @PreAuthorize(RoleConstants.HAS_ROLE_USER_OR_ADMIN)
+    @PreAuthorize("hasRole('ADMIN') or @securityUtils.isCurrentApprover(#id)")
     public ResponseEntity<ApiResponse<Void>> escalate(
             @PathVariable Long id,
             @RequestParam String reason,

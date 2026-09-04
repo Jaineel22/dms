@@ -219,6 +219,12 @@ public class ApprovalServiceImpl implements ApprovalService {
         User fromUser = instance.getCurrentApprover();
         User toUser = userRepository.findById(toUserId)
                 .orElseThrow(() -> new WorkflowException("Escalation target user not found: " + toUserId));
+        if (!Boolean.TRUE.equals(toUser.getIsActive())) {
+            throw new WorkflowException("Escalation target user is not active: " + toUserId);
+        }
+        if (fromUser != null && fromUser.getId().equals(toUserId)) {
+            throw new WorkflowException("Cannot escalate an approval to its current approver");
+        }
 
         Escalation escalation = new Escalation();
         escalation.setWorkflowInstance(instance);

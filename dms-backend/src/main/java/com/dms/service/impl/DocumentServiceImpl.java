@@ -18,6 +18,7 @@ import com.dms.exception.BusinessException;
 import com.dms.exception.ResourceNotFoundException;
 import com.dms.mapper.DocumentMapper;
 import com.dms.mapper.DocumentVersionMapper;
+import com.dms.repository.ApprovalRepository;
 import com.dms.repository.DepartmentRepository;
 import com.dms.repository.DocumentCategoryRepository;
 import com.dms.repository.DocumentRepository;
@@ -64,6 +65,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final FileStorageService         fileStorageService;
     private final SecurityUtils              securityUtils;
     private final AuditService               auditService;
+    private final ApprovalRepository         approvalRepository;
 
     // ─── Upload new document ──────────────────────────────────────────────────
 
@@ -477,20 +479,25 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     /**
-     * Allows download only to the document owner or an ADMIN.
+     * Allows download to the document owner, an ADMIN, or the workflow-assigned
+     * current approver of the document.
      */
     private void checkDownloadAccess(Document document) {
         User current = securityUtils.getCurrentUser();
         boolean isOwner = document.getOwner() != null
                 && document.getOwner().getId().equals(current.getId());
+        boolean isAdmin = securityUtils.isAdmin();
+        // An approver assigned by the workflow engine must be able to open the file they are reviewing.
+        boolean isCurrentApprover = approvalRepository
+                .existsByApproverIdAndWorkflowInstanceDocumentIdAndIsCurrentTrue(current.getId(), document.getId());
 
-        if (!isOwner && !securityUtils.isAdmin()) {
+        if (!isOwner && !isAdmin && !isCurrentApprover) {
             throw new AccessDeniedException(
                     "You do not have permission to download document '"
                   + document.getDocumentNumber() + "'.");
         }
 
-        if (Boolean.TRUE.equals(document.getIsArchived()) && !securityUtils.isAdmin()) {
+        if (Boolean.TRUE.equals(document.getIsArchived()) && !isAdmin) {
             throw new BusinessException(
                     "Document '" + document.getDocumentNumber()
                   + "' is archived. Only administrators can download archived documents.");
