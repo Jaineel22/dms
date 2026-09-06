@@ -58,4 +58,16 @@ public final class RoleConstants {
     public static final String TEAM_LEAD = "TEAM_LEAD";
     public static final String MANAGER   = "MANAGER";
     public static final String DIRECTOR  = "DIRECTOR";
+
+    // ─── Workflow step approver roles (seeded by V6.6) ────────────────────────
+    // MANAGER and DIRECTOR are already declared above; these round out the
+    // vocabulary used by workflow_steps.role_name (see V4.2's default workflows).
+
+    public static final String ROLE_FINANCE = "ROLE_FINANCE";
+    public static final String ROLE_LEGAL   = "ROLE_LEGAL";
+    public static final String ROLE_HR      = "ROLE_HR";
+
+    public static final String FINANCE = "FINANCE";
+    public static final String LEGAL   = "LEGAL";
+    public static final String HR      = "HR";
 }

@@ -21,6 +21,7 @@ public final class ApiConstants {
     public static final String AUTH_BASE        = API_VERSION + "/auth";
     public static final String USERS_BASE       = API_VERSION + "/users";
     public static final String DEPARTMENTS_BASE = API_VERSION + "/departments";
+    public static final String ROLES_BASE       = API_VERSION + "/roles";
 
     // ─── Auth endpoints ───────────────────────────────────────────────────────
 

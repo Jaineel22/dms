@@ -1,6 +1,7 @@
 package com.dms.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -41,6 +42,12 @@ public abstract class BaseEntity {
     @Column(name = "updated_by", length = 100)
     private String updatedBy;
 
+    // @Builder.Default is required here: Lombok's @SuperBuilder ignores plain
+    // field initializers for any field it doesn't see set explicitly, so without
+    // this, building a subclass via its generated builder (e.g. MapStruct calling
+    // WorkflowStep.builder()...build()) silently leaves isActive null, violating
+    // the NOT NULL column.
+    @Builder.Default
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 }

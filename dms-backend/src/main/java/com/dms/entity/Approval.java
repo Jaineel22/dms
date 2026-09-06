@@ -44,9 +44,14 @@ public class Approval {
     @JoinColumn(name = "approver_id", nullable = false)
     private User approver;
 
+    /**
+     * Null while this approval is the pending, not-yet-decided step
+     * (see {@code isCurrent}); set once the approver actually acts
+     * (see {@code ApprovalServiceImpl.closeOutApproval}).
+     */
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.VARCHAR)
-    @Column(name = "action", nullable = false, length = 20)
+    @Column(name = "action", length = 20)
     private ApprovalAction action;
 
     @Column(name = "comments", length = 1000)
