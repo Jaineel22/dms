@@ -132,18 +132,21 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<NotificationResponse> getUnreadNotifications(Long userId, Pageable pageable) {
         return notificationRepository.findByUserIdAndIsReadFalse(userId, pageable)
                 .map(notificationMapper::toResponse);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<NotificationResponse> getAllNotifications(Long userId, Pageable pageable) {
         return notificationRepository.findByUserId(userId, pageable)
                 .map(notificationMapper::toResponse);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public NotificationSummaryResponse getNotificationSummary(Long userId) {
         long totalUnread = notificationRepository.countByUserIdAndIsReadFalse(userId);
         List<Notification> unread = notificationRepository.findByUserIdAndIsReadFalse(userId);
@@ -189,7 +192,9 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
+    // Not readOnly: getOrCreateDefaultPreference() may insert a default row on first access.
     @Override
+    @Transactional
     public NotificationPreferenceResponse getPreferences(Long userId) {
         return toPreferenceResponse(getOrCreateDefaultPreference(userId));
     }

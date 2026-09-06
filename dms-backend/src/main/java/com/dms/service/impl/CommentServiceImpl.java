@@ -6,6 +6,7 @@ import com.dms.entity.Comment;
 import com.dms.entity.Document;
 import com.dms.entity.Notification;
 import com.dms.entity.User;
+import com.dms.exception.AccessDeniedException;
 import com.dms.exception.DocumentException;
 import com.dms.exception.WorkflowException;
 import com.dms.mapper.CommentMapper;
@@ -101,12 +102,14 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<CommentResponse> getDocumentComments(Long documentId, Pageable pageable) {
         return commentRepository.findByDocumentId(documentId, pageable)
                 .map(commentMapper::toResponse);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CommentResponse getCommentThread(Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new WorkflowException("Comment not found with id: " + commentId));
@@ -146,7 +149,7 @@ public class CommentServiceImpl implements CommentService {
         boolean isOwner = comment.getUser() != null && comment.getUser().getId().equals(currentUserId);
         boolean isAdmin = securityUtils.hasRole("ADMIN");
         if (!isOwner && !isAdmin) {
-            throw new WorkflowException("Only the comment owner or an admin can perform this action");
+            throw new AccessDeniedException("Only the comment owner or an admin can perform this action");
         }
     }
 }

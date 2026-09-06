@@ -13,6 +13,8 @@ import com.dms.entity.UserWorkflow;
 import com.dms.entity.WorkflowDefinition;
 import com.dms.entity.WorkflowInstance;
 import com.dms.entity.WorkflowStep;
+import com.dms.exception.AccessDeniedException;
+import com.dms.exception.ConflictException;
 import com.dms.exception.DocumentException;
 import com.dms.exception.WorkflowException;
 import com.dms.mapper.ApprovalMapper;
@@ -74,7 +76,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
                 .map(instance -> Boolean.TRUE.equals(instance.getIsActive()))
                 .orElse(false);
         if (hasActiveInstance) {
-            throw new WorkflowException("Document is already under an active workflow");
+            throw new ConflictException("Document is already under an active workflow");
         }
 
         Long currentUserId = securityUtils.getCurrentUserId();
@@ -156,17 +158,20 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public WorkflowInstanceResponse getWorkflowInstance(Long instanceId) {
         return workflowInstanceMapper.toResponse(getInstanceOrThrow(instanceId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<PendingApprovalResponse> getPendingApprovals(Long userId, Pageable pageable) {
         return workflowInstanceRepository.findByCurrentApproverId(userId, pageable)
                 .map(instance -> workflowInstanceMapper.toPendingApprovalResponse(instance, instance.getDocument()));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ApprovalResponse> getApprovalHistory(Long documentId) {
         WorkflowInstance instance = workflowInstanceRepository.findByDocumentId(documentId)
                 .orElseThrow(() -> new WorkflowException("No workflow instance found for document: " + documentId));
@@ -176,6 +181,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<WorkflowInstanceResponse> getInstancesByUser(Long userId, Pageable pageable) {
         return workflowInstanceRepository.findBySubmittedById(userId, pageable)
                 .map(workflowInstanceMapper::toResponse);
@@ -207,8 +213,16 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     public void cancelWorkflow(Long instanceId) {
         WorkflowInstance instance = getInstanceOrThrow(instanceId);
 
+        // Only the user who submitted the document (or an admin) may cancel its workflow.
+        Long currentUserId = securityUtils.getCurrentUserId();
+        boolean isSubmitter = instance.getSubmittedBy() != null
+                && instance.getSubmittedBy().getId().equals(currentUserId);
+        if (!isSubmitter && !securityUtils.isAdmin()) {
+            throw new AccessDeniedException("Only the submitter or an administrator can cancel this workflow");
+        }
+
         if (!Boolean.TRUE.equals(instance.getIsActive())) {
-            throw new WorkflowException("Workflow instance is already inactive");
+            throw new ConflictException("Workflow instance is already inactive");
         }
 
         workflowInstanceRepository.deactivateInstance(instanceId);

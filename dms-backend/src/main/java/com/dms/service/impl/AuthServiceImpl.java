@@ -29,16 +29,15 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    /** Max consecutive failures before lockout. */
-    private static final int  MAX_LOGIN_ATTEMPTS = 5;
-    /** Lockout duration in minutes. */
-    private static final long LOCKOUT_MINUTES    = 15L;
+    /** Lockout duration in minutes (shown in the locked-out user message). */
+    private static final long LOCKOUT_MINUTES = 15L;
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider      tokenProvider;
     private final UserRepository        userRepository;
     private final UserMapper            userMapper;
     private final SecurityUtils         securityUtils;
+    private final LoginAttemptService   loginAttemptService;
 
     // ─── login ────────────────────────────────────────────────────────────────
 
@@ -66,7 +65,7 @@ public class AuthServiceImpl implements AuthService {
                             request.getEmail(),
                             request.getPassword()));
         } catch (BadCredentialsException ex) {
-            handleFailedLogin(user);
+            loginAttemptService.recordFailedLogin(user);
             throw new InvalidCredentialsException("Invalid email or password");
         } catch (DisabledException ex) {
             throw new InvalidCredentialsException("Account is disabled. Please contact an administrator.");
@@ -117,20 +116,5 @@ public class AuthServiceImpl implements AuthService {
     private boolean isLockedOut(User user) {
         return user.getLockedUntil() != null
                 && LocalDateTime.now().isBefore(user.getLockedUntil());
-    }
-
-    private void handleFailedLogin(User user) {
-        int attempts = (user.getLoginAttempts() == null ? 0 : user.getLoginAttempts()) + 1;
-        userRepository.incrementLoginAttempts(user.getId());
-
-        if (attempts >= MAX_LOGIN_ATTEMPTS) {
-            LocalDateTime lockUntil = LocalDateTime.now().plusMinutes(LOCKOUT_MINUTES);
-            userRepository.lockUser(user.getId(), lockUntil);
-            log.warn("User [{}] locked until [{}] after {} failed attempts",
-                    user.getEmail(), lockUntil, attempts);
-        } else {
-            log.warn("Failed login attempt {} of {} for user [{}]",
-                    attempts, MAX_LOGIN_ATTEMPTS, user.getEmail());
-        }
     }
 }

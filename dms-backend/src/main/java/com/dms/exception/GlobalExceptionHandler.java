@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -176,6 +177,19 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, message, null, request);
     }
 
+    /**
+     * Spring MVC's actual "no route matched" signal in this Spring Boot version —
+     * it resolves unmapped paths through the static-resource handler, which throws
+     * this instead of {@link NoHandlerFoundException}.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNoResourceFound(
+            NoResourceFoundException ex, HttpServletRequest request) {
+
+        log.info("No endpoint found at [{}]: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.NOT_FOUND, "The requested resource was not found", null, request);
+    }
+
     // ─── 405 Method Not Allowed ───────────────────────────────────────────────
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
@@ -196,6 +210,14 @@ public class GlobalExceptionHandler {
             DuplicateResourceException ex, HttpServletRequest request) {
 
         log.info("Duplicate resource at [{}]: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), null, request);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiResponse<Void>> handleConflict(
+            ConflictException ex, HttpServletRequest request) {
+
+        log.info("State conflict at [{}]: {}", request.getRequestURI(), ex.getMessage());
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), null, request);
     }
 

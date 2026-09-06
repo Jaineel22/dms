@@ -11,6 +11,8 @@ import com.dms.entity.Notification;
 import com.dms.entity.User;
 import com.dms.entity.WorkflowInstance;
 import com.dms.entity.WorkflowStep;
+import com.dms.exception.AccessDeniedException;
+import com.dms.exception.ConflictException;
 import com.dms.exception.WorkflowException;
 import com.dms.mapper.ApprovalMapper;
 import com.dms.repository.ApprovalRepository;
@@ -193,6 +195,7 @@ public class ApprovalServiceImpl implements ApprovalService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ApprovalResponse getCurrentApproval(Long instanceId) {
         Approval approval = approvalRepository.findByWorkflowInstanceIdAndIsCurrentTrue(instanceId)
                 .orElseThrow(() -> new WorkflowException("No current approval found for instance: " + instanceId));
@@ -200,6 +203,7 @@ public class ApprovalServiceImpl implements ApprovalService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ApprovalResponse> getApprovalHistory(Long instanceId, Pageable pageable) {
         List<Approval> approvals = approvalRepository.findByWorkflowInstanceIdOrderByPerformedAtDesc(instanceId);
         List<ApprovalResponse> responses = approvalMapper.toResponseList(approvals);
@@ -309,14 +313,14 @@ public class ApprovalServiceImpl implements ApprovalService {
         Approval approval = approvalRepository.findById(approvalId)
                 .orElseThrow(() -> new WorkflowException("Approval not found with id: " + approvalId));
         if (!Boolean.TRUE.equals(approval.getIsCurrent())) {
-            throw new WorkflowException("Approval is no longer active/current");
+            throw new ConflictException("Approval is no longer active/current");
         }
         return approval;
     }
 
     private void validateApprover(Approval approval, Long currentUserId) {
         if (approval.getApprover() == null || !approval.getApprover().getId().equals(currentUserId)) {
-            throw new WorkflowException("Only the assigned approver can act on this approval");
+            throw new AccessDeniedException("Only the assigned approver can act on this approval");
         }
     }
 
