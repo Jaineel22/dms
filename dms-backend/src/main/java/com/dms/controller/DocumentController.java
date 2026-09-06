@@ -362,10 +362,19 @@ public class DocumentController {
     public ResponseEntity<ApiResponse<Page<DocumentResponse>>> advancedSearch(
             @Valid @RequestBody DocumentSearchRequest request) {
 
+        // Every field on DocumentSearchRequest is documented as optional, but
+        // Sort.Direction.fromString(null) and PageRequest.of(null, ...) both throw --
+        // default anything the caller omitted instead of relying on it being present.
+        int page = request.getPage() != null && request.getPage() >= 0 ? request.getPage() : 0;
+        int size = request.getSize() != null && request.getSize() > 0
+                ? Math.min(request.getSize(), 100) : 20;
+        String sortBy = (request.getSortBy() != null && !request.getSortBy().isBlank())
+                ? request.getSortBy() : "createdAt";
+        String sortDirection = (request.getSortDirection() != null && !request.getSortDirection().isBlank())
+                ? request.getSortDirection() : "desc";
+
         Pageable pageable = PageRequest.of(
-                request.getPage(),
-                Math.min(request.getSize(), 100),
-                Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy()));
+                page, size, Sort.by(Sort.Direction.fromString(sortDirection), sortBy));
 
         return ResponseEntity.ok(ApiResponse.success(documentService.advancedSearch(request, pageable)));
     }
